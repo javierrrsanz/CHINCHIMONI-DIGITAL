@@ -1,24 +1,34 @@
 library IEEE;
-  use IEEE.STD_LOGIC_1164.all;
-  use IEEE.numeric_std.all;
+use IEEE.STD_LOGIC_1164.ALL;
+use IEEE.NUMERIC_STD.ALL;
+-- IMPORTANTE: Usamos el paquete adaptado
+use work.pkg_chinchimoni.ALL;
 
 entity FSM_SELECT_PLAYERS is
-
-  port (clk        : in  std_logic;
+    Port (
+        clk        : in  std_logic;
         reset      : in  std_logic;
-        confirm    : in  std_logic;
+        
+        -- Control (Estandarizado)
+        start      : in  std_logic; -- Antes INIT_FASE
+        done       : out std_logic; -- Antes FIN_FASE
+        
+        -- Hardware
+        confirm    : in  std_logic; -- Botón limpio (tick)
         switches   : in  std_logic_vector(3 downto 0);
+        
+        -- Timer
+        timer_start: out std_logic;
         timeout_5s : in  std_logic;
-        INIT_FASE  : in  std_logic;
-
-        disp_code  : out std_logic_vector(7 downto 0);
-        players    : out std_logic_vector(1 downto 0);
-        FIN_FASE   : out std_logic;
-        start_5s   : out std_logic);
-
-end entity;
+        
+        -- Salidas
+        players_out: out std_logic_vector(2 downto 0); -- A Datapath
+        disp_code  : out std_logic_vector(15 downto 0) -- A Display Manager (16 bits)
+    );
+end FSM_SELECT_PLAYERS;
 
 architecture Behavioral of FSM_SELECT_PLAYERS is
+<<<<<<< HEAD
   type state_type is (
       S_INIT,
       S_WAIT_CONFIRM,
