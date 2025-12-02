@@ -95,7 +95,6 @@ begin
               FIN_FASE <= '1';
               state <= S_INIT;
               --disp_code <= "OK";
-        -- quedarse aquí o pasar a otro módulo
               
   
         end case;
