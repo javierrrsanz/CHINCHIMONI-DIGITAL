@@ -42,11 +42,58 @@ begin
   begin
     if rising_edge(clk) then
       if reset = '1' then
-        current_state <= S_INIT;
+        state <= S_INIT;
+  
       else
-        current_state <= next_state;
+        case state is
+  
+          when S_INIT =>
+            if INIT_FASE = '1' then
+              state <= S_WAIT_CONFIRM;
+            else
+              state <= S_INIT;
+            end if;
+          
+          when S_WAIT_CONFIRM => 
+            -- Falta asignar disp_code
+            if confirm = '1' then
+              state <= S_CHECK;
+            else    
+              state <= S_WAIT_CONFIRM;
+            end if;
+
+          when S_CHECK => 
+            if (sw_value = 2) or (sw_value = 3) or (sw_value = 4) then
+              state <= S_SHOW_OK;
+            else
+              state <= S_ERROR;
+            end if;
+
+          when S_ERROR =>
+            -- disp_code  <= "ERR_CODE";
+            if timeout_5s = '1' then
+              state <= S_WAIT_CONFIRM;
+            end if;
+          
+            when S_SHOW_OK =>
+            -- disp_code  <= " ";
+            if timeout_5s = '1' then
+              state <= S_DONE;
+            end if;
+            
+            when S_DONE =>
+              FIN_FASE <= '1';
+              state <= S_INIT;
+              --disp_code <= "OK";
+        -- quedarse aquí o pasar a otro módulo
+              
+  
+        end case;
+  
       end if;
     end if;
   end process;
+  
   -- Logi
+  
 end architecture;
