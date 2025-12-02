@@ -4,7 +4,7 @@ use IEEE.NUMERIC_STD.ALL;
 -- IMPORTANTE: Usamos el paquete adaptado
 use work.pkg_chinchimoni.ALL;
 
-entity FSM_SELECT_PLAYERS is
+entity fsm_select_players is
     Port (
         clk        : in  std_logic;
         reset      : in  std_logic;
@@ -25,10 +25,10 @@ entity FSM_SELECT_PLAYERS is
         players_out: out std_logic_vector(2 downto 0); -- A Datapath
         disp_code  : out std_logic_vector(15 downto 0) -- A Display Manager (16 bits)
     );
-end FSM_SELECT_PLAYERS;
+end fsm_select_players;
 
-architecture Behavioral of FSM_SELECT_PLAYERS is
-<<<<<<< HEAD
+architecture Behavioral of fsm_select_players is
+
   type state_type is (
       S_INIT,
       S_WAIT_CONFIRM,
