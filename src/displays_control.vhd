@@ -17,7 +17,7 @@ use IEEE.NUMERIC_STD.ALL;
 --  Carácter especial "_" se representa como "1111".
 --------------------------------------------------------------------
 
-entity segmentos is
+entity display_control is
     Port (
         clk       : in  std_logic;
         reset     : in  std_logic;
@@ -28,9 +28,9 @@ entity segmentos is
         segments  : out std_logic_vector(7 downto 0); -- a..g + dp
         selector  : out std_logic_vector(3 downto 0)  -- display seleccionado
     );
-end segmentos;
+end display_control;
 
-architecture Behavioral of segmentos is
+architecture Behavioral of display_control is
 
     ----------------------------------------------------------------
     -- Para refresco (~1 kHz por dígito)
@@ -81,19 +81,15 @@ architecture Behavioral of segmentos is
 
             -- Letras necesarias para el juego:
             -- NOTA: el display es limitado, se usan representaciones aproximadas.
-            when "1010" => seg := "0001000"; -- A
-            when "1011" => seg := "0110001"; -- C
-            when "1100" => seg := "1001000"; -- H
-            when "1101" => seg := "1000111"; -- J
-            when "1110" => seg := "0100000"; -- G
-            when "0100" => seg := "1110000"; -- I
-            when "0101" => seg := "0111000"; -- F
-            when "0110" => seg := "1110001"; -- L
-            when "0111" => seg := "0110000"; -- O
-            when "1011" => seg := "0001001"; -- P
-            when "1000" => seg := "0001001"; -- R (similar a P)
-            when "0011" => seg := "0000100"; -- d (mini-d: aproximado)
-            when others => seg := "1111111"; -- "_" o vacío
+          -- Letras definidas en el PKG
+            when "1010" => return "0001000"; -- A (AP)
+            when "1011" => return "0110001"; -- C (ch, Conf)
+            when "1100" => return "0110000"; -- E (Err)
+            when "1101" => return "0111000"; -- F (Fin) / P (AP)
+            when "1110" => return "1001000"; -- H (ch)
+            when "1111" => return "1110001"; -- J (JUG) - Ojo: Ajusta estos segmentos para que parezca una J
+            
+            when others => return "1111111"; -- Apagado (Safety)
         end case;
 
         return seg;
