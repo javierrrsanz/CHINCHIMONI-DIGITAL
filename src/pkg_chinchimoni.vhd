@@ -22,6 +22,7 @@ package pkg_chinchimoni is
     constant MIN_PLAYERS : integer := 2;
     constant MAX_PLAYERS : integer := 4;
     constant MAX_PIEDRAS : integer := 3; 
+    constant MAX_APUESTA : integer := MAX_PLAYERS * MAX_PIEDRAS; -- 12
 
     -- =============================================================
     -- 3. TIPOS DE DATOS
