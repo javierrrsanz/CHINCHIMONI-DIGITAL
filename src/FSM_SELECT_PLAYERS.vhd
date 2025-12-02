@@ -35,8 +35,10 @@ architecture Behavioral of FSM_SELECT_PLAYERS is
 
 begin
 
-  -- Proceso sincrono para actualizar estado
-  process (clk)
+  -- Switches a unsigned para trabajar comodo
+  sw_value <= unsigned(switches);
+
+  FSM_PROC : process(clk)
   begin
     if rising_edge(clk) then
       if reset = '1' then
