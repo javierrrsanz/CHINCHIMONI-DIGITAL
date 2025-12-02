@@ -10,7 +10,7 @@ entity FSM_SELECT_PLAYERS is
         reset      : in  std_logic;
         
         -- Control (Estandarizado)
-        start      : in  std_logic; -- Antes INIT_FASE
+        start      : in  std_logic; -- Antes start
         done       : out std_logic; -- Antes FIN_FASE
         
         -- Hardware
@@ -58,7 +58,7 @@ begin
         case state is
   
           when S_INIT =>
-            if INIT_FASE = '1' then
+            if start = '1' then
               state <= S_WAIT_CONFIRM;
             else
               state <= S_INIT;
@@ -92,9 +92,10 @@ begin
             end if;
             
             when S_DONE =>
-              FIN_FASE <= '1';
+              done <= '1';
               state <= S_INIT;
               --disp_code <= "OK";
+        -- quedarse aquí o pasar a otro módulo
               
   
         end case;
