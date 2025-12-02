@@ -1,109 +1,130 @@
 library IEEE;
 use IEEE.STD_LOGIC_1164.ALL;
 use IEEE.NUMERIC_STD.ALL;
--- IMPORTANTE: Usamos el paquete adaptado
 use work.pkg_chinchimoni.ALL;
 
-entity fsm_select_players is
+entity FSM_SELECT_PLAYERS is
     Port (
-        clk        : in  std_logic;
-        reset      : in  std_logic;
+        clk         : in  std_logic;
+        reset       : in  std_logic;
         
-        -- Control (Estandarizado)
-        start      : in  std_logic; -- Antes start
-        done       : out std_logic; -- Antes FIN_FASE
+        -- Control
+        start       : in  std_logic;
+        done        : out std_logic;
         
         -- Hardware
-        confirm    : in  std_logic; -- Botón limpio (tick)
-        switches   : in  std_logic_vector(3 downto 0);
+        confirm     : in  std_logic; -- Botón (pulso)
+        switches    : in  std_logic_vector(3 downto 0);
         
         -- Timer
-        timer_start: out std_logic;
-        timeout_5s : in  std_logic;
+        timer_start : out std_logic;
+        timeout_5s  : in  std_logic;
         
         -- Salidas
-        players_out: out std_logic_vector(2 downto 0); -- A Datapath
-        disp_code  : out std_logic_vector(15 downto 0) -- A Display Manager (16 bits)
+        players_out : out std_logic_vector(2 downto 0);
+        disp_code   : out std_logic_vector(15 downto 0)
     );
-end fsm_select_players;
+end FSM_SELECT_PLAYERS;
 
-architecture Behavioral of fsm_select_players is
+architecture Behavioral of FSM_SELECT_PLAYERS is
 
-  type state_type is (
-      S_INIT,
-      S_WAIT_CONFIRM,
-      S_CHECK,
-      S_ERROR,
-      S_SHOW_OK,
-      S_DONE
-    );
-
-  signal state : state_type;
-
-  -- Valor de switches
-  signal sw_value : unsigned(3 downto 0);
+    type t_state is (S_IDLE, S_WAIT_CONFIRM, S_CHECK, S_ERROR, S_SHOW_OK, S_DONE);
+    signal current_state, next_state : t_state;
+    
+    signal num_jugadores : unsigned(3 downto 0);
+    signal players_reg   : std_logic_vector(2 downto 0);
 
 begin
 
-  -- Switches a unsigned para trabajar comodo
-  sw_value <= unsigned(switches);
+    num_jugadores <= unsigned(switches);
 
-  FSM_PROC : process(clk)
-  begin
-    if rising_edge(clk) then
-      if reset = '1' then
-        state <= S_INIT;
-  
-      else
-        case state is
-  
-          when S_INIT =>
-            if start = '1' then
-              state <= S_WAIT_CONFIRM;
+    -- 1. Proceso Secuencial (Memoria de estado)
+    process (clk)
+    begin
+        if clk'event and clk = '1' then
+            if reset = '1' then
+                current_state <= S_IDLE;
+                players_reg   <= (others => '0');
             else
-              state <= S_INIT;
+                current_state <= next_state;
+                
+                -- Guardamos el valor validado solo en el momento del check correcto
+                if (current_state = S_CHECK) and 
+                   (num_jugadores >= MIN_PLAYERS and num_jugadores <= MAX_PLAYERS) then
+                    players_reg <= std_logic_vector(num_jugadores(2 downto 0));
+                end if;
             end if;
-          
-          when S_WAIT_CONFIRM => 
-            -- Falta asignar disp_code
-            if confirm = '1' then
-              state <= S_CHECK;
-            else    
-              state <= S_WAIT_CONFIRM;
-            end if;
+        end if;
+    end process;
 
-          when S_CHECK => 
-            if (sw_value = 2) or (sw_value = 3) or (sw_value = 4) then
-              state <= S_SHOW_OK;
-            else
-              state <= S_ERROR;
-            end if;
+    -- 2. Lógica Combinacional (Salidas y Transiciones)
+    process (current_state, start, confirm, num_jugadores, timeout_5s, players_reg)
+        variable v_num_disp : std_logic_vector(3 downto 0);
+    begin
+        -- Valores por defecto para evitar latches
+        next_state  <= current_state;
+        done        <= '0';
+        timer_start <= '0';
+        players_out <= players_reg;
+        
+        -- Convertimos switch actual a vector de 4 bits para el display
+        v_num_disp := std_logic_vector(num_jugadores);
+        
+        -- Por defecto mostramos JUG + valor actual de los switches
+        -- J | U | G | Num
+        disp_code <= CHAR_J & CHAR_U & CHAR_G & v_num_disp;
 
-          when S_ERROR =>
-            -- disp_code  <= "ERR_CODE";
-            if timeout_5s = '1' then
-              state <= S_WAIT_CONFIRM;
-            end if;
-          
-            when S_SHOW_OK =>
-            -- disp_code  <= " ";
-            if timeout_5s = '1' then
-              state <= S_DONE;
-            end if;
+        case current_state is
             
+            when S_IDLE =>
+                disp_code <= CHAR_BLANK & CHAR_BLANK & CHAR_BLANK & CHAR_BLANK; -- Apagado
+                if start = '1' then
+                    next_state <= S_WAIT_CONFIRM;
+                end if;
+
+            when S_WAIT_CONFIRM =>
+                -- Display muestra "JUG X" (asignado por defecto arriba)
+                if confirm = '1' then
+                    next_state <= S_CHECK;
+                end if;
+
+            when S_CHECK =>
+                -- Validamos usando las constantes del PKG
+                if (num_jugadores >= MIN_PLAYERS and num_jugadores <= MAX_PLAYERS) then
+                    timer_start <= '1'; -- ¡Arrancamos timer!
+                    next_state  <= S_SHOW_OK;
+                else
+                    timer_start <= '1'; -- ¡Arrancamos timer!
+                    next_state  <= S_ERROR;
+                end if;
+
+            when S_ERROR =>
+                -- Mensaje "Err "
+                disp_code <= MSG_ERR;
+                if timeout_5s = '1' then
+                    next_state <= S_WAIT_CONFIRM;
+                end if;
+
+            when S_SHOW_OK =>
+                -- Mensaje "J-XC" (Jugador X Confirmado)
+                -- J | - | NumGuardado | C
+                disp_code <= CHAR_J & CHAR_BLANK & ("0" & players_reg) & CHAR_C;
+                
+                if timeout_5s = '1' then
+                    next_state <= S_DONE;
+                end if;
+
             when S_DONE =>
-              done <= '1';
-              state <= S_INIT;
-              --disp_code <= "OK";
-        -- quedarse aquí o pasar a otro módulo
-              
-  
+                done <= '1';
+                -- Mantenemos el mensaje de éxito
+                disp_code <= CHAR_J & CHAR_BLANK & ("0" & players_reg) & CHAR_C;
+                
+                -- Esperamos a que el Master baje la señal start (Handshake)
+                if start = '0' then
+                    next_state <= S_IDLE;
+                end if;
+                
         end case;
-  
-      end if;
-    end if;
-  end process;
-  
-  -- Logi
-  
-end architecture;
+    end process;
+
+end Behavioral;
