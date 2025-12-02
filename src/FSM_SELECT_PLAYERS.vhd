@@ -28,7 +28,7 @@ architecture Behavioral of FSM_SELECT_PLAYERS is
       S_DONE
     );
 
-  signal current_state, next_state : state_type;
+  signal state : state_type;
 
   -- Valor de switches
   signal sw_value : unsigned(3 downto 0);
@@ -46,6 +46,5 @@ begin
       end if;
     end if;
   end process;
-
   -- Logi
 end architecture;
