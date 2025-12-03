@@ -108,7 +108,7 @@ begin
   variable v_num_disp : std_logic_vector(3 downto 0);
   v_num_disp := std_logic_vector(num_jugadores);
 
-  players_out <= players_reg;
+  players_out <= players_reg; -- En algun momento habria que volver a poner a 0
 
   timer_start <= '1' when state = S_CHECK else '0';
 
