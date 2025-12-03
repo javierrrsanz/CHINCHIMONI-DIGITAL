@@ -28,103 +28,96 @@ end FSM_SELECT_PLAYERS;
 
 architecture Behavioral of FSM_SELECT_PLAYERS is
 
-    type t_state is (S_IDLE, S_WAIT_CONFIRM, S_CHECK, S_ERROR, S_SHOW_OK, S_DONE);
-    signal current_state, next_state : t_state;
+    type state_type is (
+      S_INIT,
+      S_WAIT_CONFIRM,
+      S_CHECK,
+      S_ERROR,
+      S_SHOW_OK,
+      S_DONE
+    );
+    signal state : state_type;
+
+    -- Senal interna de empezar timer
+    --signal int_timer_start : std_logic;
+
+    -- Senal interna done
+    --signal int_done : std_logic;
     
+    -- Valor de switches
     signal num_jugadores : unsigned(3 downto 0);
     signal players_reg   : std_logic_vector(2 downto 0);
 
 begin
-
+    -- Switches a unsigned para trabajar comodo
     num_jugadores <= unsigned(switches);
 
-    -- 1. Proceso Secuencial (Memoria de estado)
-    process (clk)
-    begin
-        if clk'event and clk = '1' then
-            if reset = '1' then
-                current_state <= S_IDLE;
-                players_reg   <= (others => '0');
+    FSM_PROC : process(clk,reset)
+  begin
+      if reset = '1' then
+        state <= S_INIT;
+        players_reg   <= (others => '0');
+        --int_timer_start <= '0';
+        --int_done <= '0';
+      elsif clk 'event and clk='1' then
+        case state is
+  
+          when S_INIT =>
+            if start = '1' then
+              state <= S_WAIT_CONFIRM;
             else
-                current_state <= next_state;
-                
-                -- Guardamos el valor validado solo en el momento del check correcto
-                if (current_state = S_CHECK) and 
-                   (num_jugadores >= MIN_PLAYERS and num_jugadores <= MAX_PLAYERS) then
-                    players_reg <= std_logic_vector(num_jugadores(2 downto 0));
-                end if;
+              state <= S_INIT;
             end if;
-        end if;
-    end process;
+          
+          when S_WAIT_CONFIRM => 
+            -- Falta asignar disp_code
+            if confirm = '1' then
+              state <= S_CHECK;
+            else    
+              state <= S_WAIT_CONFIRM;
+            end if;
 
-    -- 2. Lógica Combinacional (Salidas y Transiciones)
-    process (current_state, start, confirm, num_jugadores, timeout_5s, players_reg)
-        variable v_num_disp : std_logic_vector(3 downto 0);
-    begin
-        -- Valores por defecto para evitar latches
-        next_state  <= current_state;
-        done        <= '0';
-        timer_start <= '0';
-        players_out <= players_reg;
-        
-        -- Convertimos switch actual a vector de 4 bits para el display
-        v_num_disp := std_logic_vector(num_jugadores);
-        
-        -- Por defecto mostramos JUG + valor actual de los switches
-        -- J | U | G | Num
-        disp_code <= CHAR_J & CHAR_U & CHAR_G & v_num_disp;
+          when S_CHECK => 
+            --int_timer_start <= '1'; -- Arranca el timer
+            if (num_jugadores >= MIN_PLAYERS and num_jugadores <= MAX_PLAYERS) then
+              state  <= S_SHOW_OK;
+              players_reg <= std_logic_vector(num_jugadores(2 downto 0));
+            else
+              state  <= S_ERROR;
+            end if;
 
-        case current_state is
-            
-            when S_IDLE =>
-                disp_code <= CHAR_BLANK & CHAR_BLANK & CHAR_BLANK & CHAR_BLANK; -- Apagado
-                if start = '1' then
-                    next_state <= S_WAIT_CONFIRM;
-                end if;
-
-            when S_WAIT_CONFIRM =>
-                -- Display muestra "JUG X" (asignado por defecto arriba)
-                if confirm = '1' then
-                    next_state <= S_CHECK;
-                end if;
-
-            when S_CHECK =>
-                -- Validamos usando las constantes del PKG
-                if (num_jugadores >= MIN_PLAYERS and num_jugadores <= MAX_PLAYERS) then
-                    timer_start <= '1'; -- ¡Arrancamos timer!
-                    next_state  <= S_SHOW_OK;
-                else
-                    timer_start <= '1'; -- ¡Arrancamos timer!
-                    next_state  <= S_ERROR;
-                end if;
-
-            when S_ERROR =>
-                -- Mensaje "Err "
-                disp_code <= MSG_ERR;
-                if timeout_5s = '1' then
-                    next_state <= S_WAIT_CONFIRM;
-                end if;
-
+          when S_ERROR =>
+            --int_timer_start <= '0';
+            if timeout_5s = '1' then
+              state <= S_WAIT_CONFIRM;
+            end if;
+          
             when S_SHOW_OK =>
-                -- Mensaje "J-XC" (Jugador X Confirmado)
-                -- J | - | NumGuardado | C
-                disp_code <= CHAR_J & CHAR_BLANK & ("0" & players_reg) & CHAR_C;
-                
-                if timeout_5s = '1' then
-                    next_state <= S_DONE;
-                end if;
-
+            -- int_timer_start <= '0';
+            if timeout_5s = '1' then
+              state <= S_DONE;
+            end if;
+            
             when S_DONE =>
-                done <= '1';
-                -- Mantenemos el mensaje de éxito
-                disp_code <= CHAR_J & CHAR_BLANK & ("0" & players_reg) & CHAR_C;
-                
-                -- Esperamos a que el Master baje la señal start (Handshake)
-                if start = '0' then
-                    next_state <= S_IDLE;
-                end if;
-                
-        end case;
-    end process;
+              state <= S_INIT;
+            end case;
+      end if;
+  end process;
+
+  -- Logica combinacional salidas
+  variable v_num_disp : std_logic_vector(3 downto 0);
+  v_num_disp := std_logic_vector(num_jugadores);
+
+  players_out <= players_reg;
+
+  timer_start <= '1' when state = S_CHECK else '0';
+
+  done <= '1' when state = S_DONE else '0';
+
+  with state select
+    disp_code <=  CHAR_J & CHAR_U & CHAR_G & v_num_disp when S_WAIT_CONFIRM,
+                  CHAR_J & CHAR_U & CHAR_G & v_num_disp when S_SHOW_OK, -- Aqui hay q poner el registro en realidad
+                  CHAR_J & CHAR_U & CHAR_G & CHAR_BLANK when S_ERROR,
+                  CHAR_BLANK & CHAR_BLANK & CHAR_BLANK & CHAR_BLANK when others;
 
 end Behavioral;
