@@ -50,7 +50,7 @@ architecture Behavioral of game_regbank is
 
     -- Registros Internos (Memoria)
     -- Inicializamos a 2 jugadores por defecto
-    signal reg_num_players : integer range 0 to MAX_PLAYERS := 2; 
+    signal reg_num_players : integer range 0 to MAX_PLAYERS; 
     
     -- Inicializamos arrays a cero (definidos en pkg)
     signal reg_piedras     : t_player_array := (others => 0);
