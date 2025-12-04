@@ -65,7 +65,7 @@ begin
         if clk'event and clk = '1' then
             if reset = '1' then
                 -- Reset del juego: Limpiamos todo
-                reg_num_players <= 2;
+                reg_num_players <= 0;
                 reg_piedras     <= (others => 0);
                 reg_apuestas    <= (others => 0);
                 reg_puntos      <= (others => 0);

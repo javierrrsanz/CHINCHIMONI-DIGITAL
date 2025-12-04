@@ -21,6 +21,7 @@ architecture tb of tb_FSM_SELECT_PLAYERS is
     signal done        : std_logic;
     signal players_out : std_logic_vector(2 downto 0);
     signal disp_code   : std_logic_vector(15 downto 0);
+    signal we_players_out : std_logic;
 
     constant CLK_PERIOD : time := 8 us;
 
@@ -40,7 +41,8 @@ begin
         timer_start => timer_start,
         timeout_5s  => timeout_5s,
         players_out => players_out,
-        disp_code   => disp_code
+        disp_code   => disp_code,
+        we_players_out => we_players_out
     );
 
     ---------------------------------------------------------------------
