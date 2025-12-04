@@ -123,8 +123,10 @@ begin
 -- Logica Combinacional Salidas
 
   we_piedras <= '1' when state = S_OK else '0';
+  
+  timer_start <= '1' when state = S_CHECK else '0';
 
-  player_idx_u <= unsigned(player_idx);
+  player_idx_u <= to_unsigned(player_idx,4);
   player_idx_p <= player_idx;
 
   in_piedras <= piedras_value;
@@ -132,10 +134,10 @@ begin
   done <= '1' when state = S_DONE else '0';
 
   with state select
-    disp_code <= CHAR_C & CHAR_H & player_idx_u & CHAR_BLANK when S_WAIT,
-                 CHAR_C & CHAR_H & player_idx_u & CHAR_E     when S_ERROR,
-                 CHAR_C & CHAR_H & player_idx_u & CHAR_C     when S_OK,
+    disp_code <= CHAR_C & CHAR_H & std_logic_vector(player_idx_u) & CHAR_BLANK when S_WAIT,
+                 CHAR_C & CHAR_H & std_logic_vector(player_idx_u) & CHAR_E     when S_ERROR,
+                 CHAR_C & CHAR_H & std_logic_vector(player_idx_u) & CHAR_C     when S_OK,
                  CHAR_BLANK & CHAR_BLANK & CHAR_BLANK & CHAR_BLANK when others;
 
 
-end behavioral
+end behavioral;
