@@ -49,12 +49,12 @@ package pkg_chinchimoni is
     constant CHAR_9 : std_logic_vector(3 downto 0) := "1001";
 
     -- Letras Especiales (Mapeadas a los huecos 10-15)
-    constant CHAR_A : std_logic_vector(3 downto 0) := "1010"; -- Para "AP"
-    constant CHAR_C : std_logic_vector(3 downto 0) := "1011"; -- Para "ch" y "Confirm"
-    constant CHAR_E : std_logic_vector(3 downto 0) := "1100"; -- Para "Err"
+    constant CHAR_A : std_logic_vector(3 downto 0) := "1010"; -- Para "AP" y "10"
+    constant CHAR_C : std_logic_vector(3 downto 0) := "1011"; -- Para "ch" y "Confirm" y "11"
+    constant CHAR_E : std_logic_vector(3 downto 0) := "1100"; -- Para "Err" y "12"
     constant CHAR_F : std_logic_vector(3 downto 0) := "1101"; -- Para "Fin" y "P" (AP)
-    constant CHAR_H : std_logic_vector(3 downto 0) := "1110"; -- Para "ch"
-    constant CHAR_J : std_logic_vector(3 downto 0) := "1111"; -- Para "JUG"
+    constant CHAR_H : std_logic_vector(3 downto 0) := "1110"; -- Para "ch" 
+    constant CHAR_J : std_logic_vector(3 downto 0) := "1111"; -- Para "JUG" 
     
     -- Alias para facilitar la lectura del código en las FSMs
     constant CHAR_G : std_logic_vector(3 downto 0) := CHAR_6; -- Reutilizamos el 6
@@ -66,6 +66,30 @@ package pkg_chinchimoni is
     -- Mensajes Predefinidos (Helpers) para hacer el código más limpio
     -- Ejemplo: "Err "
     constant MSG_ERR : std_logic_vector(15 downto 0) := CHAR_E & CHAR_E & CHAR_E & CHAR_E; -- Ojo con blank
+
+    -- =============================================================
+    -- 5. DISPLAY 7 SEGMENTOS ()
+    -- =============================================================
+    
+    -- Control de los segmentos a,b,c,d,e,f,g (7)
+    -- Números 0-12 (Directos)
+
+    constant NUM_0  :  std_logic_vector(8 downto 0) := "1111110":
+    constant NUM_1  :  std_logic_vector(8 downto 0) := "0110000":
+    constant NUM_2  :  std_logic_vector(8 downto 0) := "1101101";
+    constant NUM_3  :  std_logic_vector(8 downto 0) := "1111001";
+    constant NUM_4  :  std_logic_vector(8 downto 0) := "0110011";
+    constant NUM_5  :  std_logic_vector(8 downto 0) := "1011011";
+    constant NUM_6  :  std_logic_vector(8 downto 0) := "1011111";
+    constant NUM_7  :  std_logic_vector(8 downto 0) := "1110000";
+    constant NUM_8  :  std_logic_vector(8 downto 0) := "1111111";
+    constant NUM_9  :  std_logic_vector(8 downto 0) := "1111011";
+    constant NUM_10 :  std_logic_vector(8 downto 0) := "1110111"; -- Hexadecimal(A)
+    constant NUM_11 :  std_logic_vector(8 downto 0) := "0011111"; -- Hexadecimal(b)
+    constant NUM_12 :  std_logic_vector(8 downto 0) := "1001110"; -- Hexadecimal(C)
+   
+
+
 
 end package pkg_chinchimoni;
 
