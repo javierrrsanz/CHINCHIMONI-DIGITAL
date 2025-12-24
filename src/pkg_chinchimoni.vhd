@@ -72,22 +72,22 @@ package pkg_chinchimoni is
     -- =============================================================
     
     -- Control de los segmentos a,b,c,d,e,f,g (7)
-    -- Números 0-12 (Directos)
+    -- Números 0-12 (Directos), activos en baja
 
-    constant NUM_0  :  std_logic_vector(8 downto 0) := "1111110":
-    constant NUM_1  :  std_logic_vector(8 downto 0) := "0110000":
-    constant NUM_2  :  std_logic_vector(8 downto 0) := "1101101";
-    constant NUM_3  :  std_logic_vector(8 downto 0) := "1111001";
-    constant NUM_4  :  std_logic_vector(8 downto 0) := "0110011";
-    constant NUM_5  :  std_logic_vector(8 downto 0) := "1011011";
-    constant NUM_6  :  std_logic_vector(8 downto 0) := "1011111";
-    constant NUM_7  :  std_logic_vector(8 downto 0) := "1110000";
-    constant NUM_8  :  std_logic_vector(8 downto 0) := "1111111";
-    constant NUM_9  :  std_logic_vector(8 downto 0) := "1111011";
-    constant NUM_10 :  std_logic_vector(8 downto 0) := "1110111"; -- Hexadecimal(A)
-    constant NUM_11 :  std_logic_vector(8 downto 0) := "0011111"; -- Hexadecimal(b)
-    constant NUM_12 :  std_logic_vector(8 downto 0) := "1001110"; -- Hexadecimal(C)
-   
+    constant NUM_0  :  std_logic_vector(6 downto 0) := "0000001";
+    constant NUM_1  :  std_logic_vector(6 downto 0) := "1001111";
+    constant NUM_2  :  std_logic_vector(6 downto 0) := "0010010";   
+    constant NUM_3  :  std_logic_vector(6 downto 0) := "0000110";
+    constant NUM_4  :  std_logic_vector(6 downto 0) := "1001100";
+    constant NUM_5  :  std_logic_vector(6 downto 0) := "0100100";
+    constant NUM_6  :  std_logic_vector(6 downto 0) := "0100000";
+    constant NUM_7  :  std_logic_vector(6 downto 0) := "0001111";
+    constant NUM_8  :  std_logic_vector(6 downto 0) := "0000000";
+    constant NUM_9  :  std_logic_vector(6 downto 0) := "0000100";
+    constant NUM_10 :  std_logic_vector(6 downto 0) := "0001000"; -- Hexadecimal(A)
+    constant NUM_11 :  std_logic_vector(6 downto 0) := "1100000"; -- Hexadecimal(b)
+    constant NUM_12 :  std_logic_vector(6 downto 0) := "0110001"; -- Hexadecimal(C)
+    constant BLANK  :  std_logic_vector(6 downto 0) := "1111110"; -- valor nulo 
 
 
 
