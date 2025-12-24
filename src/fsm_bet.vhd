@@ -39,6 +39,10 @@ entity fsm_bet is
         player_idx_a       : out integer range 1 to MAX_PLAYERS;
         in_apuesta         : out integer range 0 to MAX_APUESTA;
 
+        -- Leds
+
+        leds_enable       : out std_logic;
+
         -- Display
         disp_code          : out std_logic_vector(15 downto 0)
     );
@@ -106,33 +110,23 @@ begin
                         -- Validar apuesta
                         if (val_int > MAX_APUESTA) or
                            (val_int = 0) or
-                           (rondadejuego = 0 and val_int > piedras_reg(player_idx).apuestas) or
-                           (apuestas_reg(player_idx).apuestas /= 0) then
+                           (rondadejuego = 0 and val_int > piedras_reg(player_idx)) or
+                           (apuestas_reg(player_idx) /= 0) then
                             -- Apuesta inválida
-                            timer_start <= '1';
                             state <= S_ERROR;
                         else
                             -- Apuesta válida
                             apuesta_value <= val_int;
-                            timer_start <= '1';
                             state <= S_OK;
                         end if;
 
                     when S_ERROR =>
-                        timer_start <= '0';
                         if timeout_5s = '1' then
                             state <= S_WAIT;
                         end if;
 
-                    when S_OK =>
-                        timer_start <= '0';
-                        -- Escribir apuesta en el banco de registros
-                        we_apuesta       <= '1';
-                        player_idx_a     <= player_idx;
-                        in_apuesta       <= apuesta_value;
-
+                    when S_OK =>                    
                         if timeout_5s = '1' then
-                            we_apuesta <= '0';
                             -- Preparar siguiente jugador
                             if player_idx < num_players then
                                 player_idx <= player_idx + 1;
@@ -143,11 +137,7 @@ begin
                         end if;
 
                     when S_DONE =>
-                        done <= '1';
-                        if start = '0' then
                             state <= S_IDLE;
-                        end if;
-
                     when others =>
                         state <= S_IDLE;
 
@@ -156,6 +146,27 @@ begin
         end if;
     end process FSM_PROCESS;
 
-    
+    -- Logica combinacional salidas
+
+    timer_start <= '1' when state = S_CHECK else '0';
+
+    we_apuesta <= '1' when state = S_OK else '0';
+    leds_enable <= '1' when state = S_OK else '0';
+
+    player_idx_a <= player_idx;
+    player_idx_u <= to_unsigned(player_idx,4);
+
+    in_apuesta <= apuesta_value;
+
+    done <= '1' when state = S_DONE else '0';
+
+    with state select
+    disp_code <=
+       CHAR_A & CHAR_P & std_logic_vector(player_idx_u) & CHAR_BLANK when S_WAIT,
+       CHAR_A & CHAR_P & std_logic_vector(player_idx_u) & CHAR_E     when S_ERROR,
+       CHAR_A & CHAR_P & std_logic_vector(player_idx_u) & CHAR_C     when S_OK,
+       CHAR_BLANK & CHAR_BLANK & CHAR_BLANK & CHAR_BLANK             when others;
+
+
 
 end architecture behavioral;
