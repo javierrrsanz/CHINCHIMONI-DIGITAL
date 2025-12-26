@@ -70,8 +70,14 @@ architecture Behavioral of segmentos is
     ----------------------------------------------------------------
     -- 3) Selector y nibble activo
     ----------------------------------------------------------------
-    process(digit_sel, disp_code)
-    begin
+   process(clk, reset)
+begin
+
+    if reset = '1' then
+        selector     <= "0001";
+        current_char <= (others => '0');
+        
+    elsif rising_edge(clk) then
         case digit_sel is
             when "00" =>
                 selector     <= "0001";
@@ -89,30 +95,28 @@ architecture Behavioral of segmentos is
                 selector     <= "1000";
                 current_char <= disp_code(15 downto 12);
         end case;
-    end process;
+    end if;
+end process;
 
      ----------------------------------------------------------------
     -- 4) Decoder nibble → segmentos
     ----------------------------------------------------------------
-    process(current_char)
-    begin
         case current_char is
-            when "0000" => seg_pat <= NUM_0;
-            when "0001" => seg_pat <= NUM_1;
-            when "0010" => seg_pat <= NUM_2;
-            when "0011" => seg_pat <= NUM_3;
-            when "0100" => seg_pat <= NUM_4;
-            when "0101" => seg_pat <= NUM_5;
-            when "0110" => seg_pat <= NUM_6;
-            when "0111" => seg_pat <= NUM_7;
-            when "1000" => seg_pat <= NUM_8;
-            when "1001" => seg_pat <= NUM_9;
-            when "1010" => seg_pat <= NUM_10;
-            when "1011" => seg_pat <= NUM_11;
-            when "1100" => seg_pat <= NUM_12;
+            when CHAR_0 => seg_pat <= NUM_0;
+            when CHAR_1 => seg_pat <= NUM_1;
+            when CHAR_2 => seg_pat <= NUM_2;
+            when CHAR_3 => seg_pat <= NUM_3;
+            when CHAR_4 => seg_pat <= NUM_4;
+            when CHAR_5 => seg_pat <= NUM_5;
+            when CHAR_6 => seg_pat <= NUM_6;
+            when CHAR_7 => seg_pat <= NUM_7;
+            when CHAR_8 => seg_pat <= NUM_8;
+            when CHAR_9 => seg_pat <= NUM_9;
+            when CHAR_A => seg_pat <= NUM_10;
+            when CHAR_C => seg_pat <= NUM_11;
+            when CHAR_E => seg_pat <= NUM_12;
             when others => seg_pat <= BLANK;
         end case;
-    end process;
 
     ----------------------------------------------------------------
     -- 5) Salida final
