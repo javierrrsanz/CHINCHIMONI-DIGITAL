@@ -68,8 +68,12 @@ architecture behavioral of fsm_bet is
   signal apuesta_value   : integer range 0 to MAX_APUESTA;
   signal val_int         : integer range 0 to MAX_APUESTA;
   signal num_players     : integer range 1 to MAX_PLAYERS;
-  signal bet_count       : integer range 0 to MAX_PLAYERS;
   signal player_idx_u    : unsigned(3 downto 0);
+
+  signal repeated_bet    : std_logic;
+
+  signal auxiliar        : integer range 1 to MAX_PLAYERS;
+
 
 begin
 
@@ -77,7 +81,22 @@ begin
   val_int <= to_integer(unsigned(switches));
 
   -- Num jugadores desde vector
-  num_players <= to_integer(unsigned(out_num_players_vec)) + 1; -- no estoy seguro del +1
+  num_players <= to_integer(unsigned(out_num_players_vec)); -- Antes había un +1 aquí, revisar
+
+  -- Señal auxiliar de jugador real
+    auxiliar <= (player_idx - 1 + (rondadejuego mod num_players) mod num_players)+1; -- Ajuste de índice circular
+
+  Repeated_bet_PROCESS : process(clk)
+  begin
+    if rising_edge(clk) then
+        repeated_bet <= '0';
+        for i in 1 to MAX_PLAYERS loop
+            if (i < player_idx) and (apuestas_reg(((i - 1 + (rondadejuego mod num_players)) mod num_players) + 1) = val_int) then  -- Para que evalue la apuesta de los jugadores anteriores en el orden circular
+                repeated_bet <= '1';
+            end if;
+        end loop;
+    end if;
+  end process Repeated_bet_PROCESS;
 
   FSM_PROCESS : process(clk)
     begin
@@ -86,8 +105,6 @@ begin
                 state          <= S_IDLE;
                 player_idx     <= 1;
                 apuesta_value  <= 0;
-                bet_count      <= 0;
-                done           <= '0';
 
             else
                 case state is
@@ -95,8 +112,6 @@ begin
                     when S_IDLE =>
                         player_idx     <= 1;
                         apuesta_value  <= 0;
-                        bet_count      <= 0;
-                        done           <= '0';
                         if start = '1' then
                             state <= S_WAIT;
                         end if;
@@ -111,7 +126,7 @@ begin
                         if (val_int > MAX_APUESTA) or
                            (val_int = 0) or
                            (rondadejuego = 0 and val_int > piedras_reg(player_idx)) or
-                           (apuestas_reg(player_idx) /= 0) then
+                           (repeated_bet = '1') then
                             -- Apuesta inválida
                             state <= S_ERROR;
                         else
@@ -153,8 +168,8 @@ begin
     we_apuesta <= '1' when state = S_OK else '0';
     leds_enable <= '1' when state = S_OK else '0';
 
-    player_idx_a <= player_idx;
-    player_idx_u <= to_unsigned(player_idx,4);
+    player_idx_a <= auxiliar; -- Ajuste de índice circular
+    player_idx_u <= to_unsigned(auxiliar,4);
 
     in_apuesta <= apuesta_value;
 
