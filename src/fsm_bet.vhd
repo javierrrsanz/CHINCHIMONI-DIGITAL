@@ -72,6 +72,8 @@ architecture behavioral of fsm_bet is
 
   signal repeated_bet    : std_logic;
 
+  signal auxiliar        : integer range 1 to MAX_PLAYERS;
+
 
 begin
 
@@ -81,20 +83,20 @@ begin
   -- Num jugadores desde vector
   num_players <= to_integer(unsigned(out_num_players_vec)); -- Antes había un +1 aquí, revisar
 
-Repeted_bet_PROCESS : process(clk)
+  -- Señal auxiliar de jugador real
+    auxiliar <= (player_idx - 1 + (rondadejuego mod num_players) mod num_players)+1; -- Ajuste de índice circular
+
+  Repeated_bet_PROCESS : process(clk)
   begin
     if rising_edge(clk) then
-      if reset = '1' then
         repeated_bet <= '0';
-      else
         for i in 1 to MAX_PLAYERS loop
-            if (i < player_idx) and (apuestas_reg(i) = val_int) then
+            if (i < player_idx) and (apuestas_reg(((i - 1 + (rondadejuego mod num_players)) mod num_players) + 1) = val_int) then  -- Para que evalue la apuesta de los jugadores anteriores en el orden circular
                 repeated_bet <= '1';
             end if;
         end loop;
-      end if;
     end if;
-  end process Repeted_bet_PROCESS;
+  end process Repeated_bet_PROCESS;
 
   FSM_PROCESS : process(clk)
     begin
@@ -166,8 +168,8 @@ Repeted_bet_PROCESS : process(clk)
     we_apuesta <= '1' when state = S_OK else '0';
     leds_enable <= '1' when state = S_OK else '0';
 
-    player_idx_a <= (player_idx - 1 + (rondadejuego mod num_players) mod num_players)+1; -- Ajuste de índice circular
-    player_idx_u <= to_unsigned((player_idx - 1 + (rondadejuego mod num_players) mod num_players)+1,4);
+    player_idx_a <= auxiliar; -- Ajuste de índice circular
+    player_idx_u <= to_unsigned(auxiliar,4);
 
     in_apuesta <= apuesta_value;
 
