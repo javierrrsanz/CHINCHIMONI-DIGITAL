@@ -2,6 +2,8 @@ library IEEE;
 use IEEE.STD_LOGIC_1164.ALL;
 use IEEE.NUMERIC_STD.ALL;
 
+use work.pkg_chinchimoni.ALL;
+
 entity segmentos is
     Port (
         clk      : in  std_logic;
@@ -76,7 +78,7 @@ begin
     if reset = '1' then
         selector     <= "0001";
         current_char <= (others => '0');
-        
+
     elsif rising_edge(clk) then
         case digit_sel is
             when "00" =>
