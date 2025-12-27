@@ -3,41 +3,57 @@ use IEEE.STD_LOGIC_1164.ALL;
 use IEEE.NUMERIC_STD.ALL;
 use work.pkg_chinchimoni.ALL;  -- Para MAX_PLAYERS y t_player_array
 
+
+
 entity leds_control is
     Port (
         clk          : in  std_logic;
         reset        : in  std_logic;
 
-        led_enable   : in  std_logic;                       -- Si = '1' mostramos LEDs
-        player_idx_a : in  integer range 1 to MAX_PLAYERS;  -- Jugador que está apostando (1..4)
-        out_apuestas : in  t_player_array;                  -- Apuestas de todos los jugadores
+        leds_enable   : in  std_logic;
+        player_idx_a : in  integer range 1 to MAX_PLAYERS;
+        out_apuestas : in  t_player_array;
 
-        leds         : out std_logic_vector(7 downto 0)      -- LEDs (activo-alto normalmente)
+        leds         : out std_logic_vector(11 downto 0) --12 LEDs
     );
 end leds_control;
 
+
+
+
 architecture Behavioral of leds_control is
-    signal apuesta_sel : integer range 0 to 15 := 0;  -- t_player_array usa 0..15
+    
+    signal apuesta_val : integer range 0 to MAX_APUESTA := 0;
+    signal mask : std_logic_vector(11 downto 0) := (others => '0'); --señal que guarda el valor de los LEDs
+
 begin
 
-    -- Proceso 100% síncrono (como has pedido)
     process(clk, reset)
+    
     begin
         if reset = '1' then
-            leds        <= (others => '0');   -- Apaga todos los LEDs al reset
-            apuesta_sel <= 0;
+            mask <= (others => '0');
+            leds <= (others => '0');
 
         elsif rising_edge(clk) then
 
-            -- Guardamos la apuesta del jugador actual (registrado)
-            apuesta_sel <= out_apuestas(player_idx_a);
+            -- Valor estable leído del banco de registros
+            apuesta_val := out_apuestas(player_idx_a);
 
-            if led_enable = '1' then
-                -- Mostramos la apuesta seleccionada en binario en los LEDs
-                leds <= std_logic_vector(to_unsigned(apuesta_sel, 8));
+            -- Construcción de barra decodificada
+            for i in 0 to 11 loop
+                if i < apuesta_val then
+                    mask(i) <= '1';
+                else
+                    mask(i) <= '0';
+                end if;
+            end loop;
+
+            -- Salida condicionada
+            if leds_enable = '1' then
+                leds <= mask;  --si el enable esta activo se muestra los LEDs guardados en mask
             else
-                -- Si led_enable=0, LEDs apagados
-                leds <= (others => '0');
+                leds <= (others => '0');  ----si el enable no está activo no se muestra ningun LED
             end if;
 
         end if;
