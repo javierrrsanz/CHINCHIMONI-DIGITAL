@@ -73,6 +73,7 @@ architecture behavioral of fsm_bet is
   signal repeated_bet    : std_logic;
 
   signal auxiliar        : integer range 1 to MAX_PLAYERS;
+  signal offset   : integer range 0 to MAX_PLAYERS-1;
 
 
 begin
@@ -84,7 +85,8 @@ begin
   num_players <= to_integer(unsigned(out_num_players_vec)); -- Antes había un +1 aquí, revisar
 
   -- Señal auxiliar de jugador real
-    auxiliar <= (player_idx - 1 + (rondadejuego mod num_players) mod num_players)+1; -- Ajuste de índice circular
+  offset   <= rondadejuego mod num_players;
+  auxiliar <= ((player_idx - 1 + offset) mod num_players) + 1; -- Ajuste de índice circular
 
   Repeated_bet_PROCESS : process(clk)
   begin
