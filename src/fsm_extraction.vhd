@@ -17,6 +17,9 @@ entity FSM_EXTRACTION is
         confirm      : in  std_logic;
         switches     : in  std_logic_vector(3 downto 0);
 
+        -- Request de AI_PLAYER para extraer piedras
+        ai_extraction_request   : out  std_logic;
+
         -- Temporizador externo (5 s)
         timer_start  : out std_logic;
         timeout_5s   : in  std_logic;
@@ -56,6 +59,9 @@ architecture behavioral of FSM_EXTRACTION is
 
   signal player_idx_u    : unsigned(3 downto 0); -- Para visualizarlo con displays
 
+  signal ai_request_reg  : std_logic;
+  signal ai_request_flag  : std_logic;
+
 begin
 
   val_int <= to_integer(unsigned(switches));
@@ -67,23 +73,33 @@ begin
                 state          <= S_IDLE;
                 player_idx     <= 1;
                 piedras_value  <= 0;
+                ai_request_reg <= '0';
+                ai_request_flag <= '0';
 
             else
                 case state is
 
                     when S_IDLE =>
                         player_idx     <= 1;
+                        ai_request_flag <= '0';
                         if start = '1' then
                             state <= S_WAIT;
                         end if;
 
                     when S_WAIT =>
+                         if player_idx = 1 and ai_request_flag = '0' then
+                            ai_request_reg <= '1';
+                            ai_request_flag <= '1';
+                        else
+                            ai_request_reg <= '0';
+                        end if;
                         -- Esperamos a que llegue un pulso de confirmación
                         if confirm = '1' then
                             state <= S_CHECK;
                         end if;
 
                     when S_CHECK =>
+                        ai_request_flag <= '0';
                         if (val_int >= 0) and (val_int <= MAX_PIEDRAS) and
                            not (first_round = '1' and val_int = 0) then
                             -- Selección válida
@@ -121,6 +137,8 @@ begin
     end process;
 
 -- Logica Combinacional Salidas
+
+    ai_extraction_request <= ai_request_reg;
 
   we_piedras <= '1' when state = S_OK else '0';
   
