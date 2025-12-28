@@ -1,0 +1,238 @@
+--====================================================================
+--  Testbench: leds_control_tb.vhd
+--  Objetivo : Banco de pruebas síncrono para leds_control.vhd (Vivado)
+--             - Genera reloj a 125 MHz
+--             - Aplica reset y lo libera en flanco de subida
+--             - Fuerza out_apuestas y player_idx_a
+--             - Activa/desactiva leds_enable
+--             - Comprueba que la barra de LEDs coincide con la apuesta
+--
+--  Recordatorio de comportamiento esperado:
+--    - Si leds_enable='0'  => leds = "000...0"
+--    - Si leds_enable='1'  => leds(i)='1' para i < apuesta_val, si no '0'
+--      (con i de 0 a 11)
+--
+--  IMPORTANTE:
+--    En el DUT, leds <= mask dentro del mismo proceso donde mask se actualiza
+--    con <=. Esto suele introducir 1 ciclo de retardo (leds muestra el mask
+--    "anterior"). Por eso, en este TB comprobamos 2 ciclos después de cambiar
+--    estímulos, para evitar falsos fallos.
+--====================================================================
+
+library IEEE;
+use IEEE.STD_LOGIC_1164.ALL;
+use IEEE.NUMERIC_STD.ALL;
+
+use work.pkg_chinchimoni.ALL;  -- MAX_PLAYERS, MAX_APUESTA, t_player_array
+
+entity tb_leds_control is
+end entity;
+
+architecture tb of tb_leds_control is
+
+    --========================
+    -- Parámetros de reloj
+    --========================
+    constant CLK_PERIOD : time := 8 ns; -- 125 MHz
+
+    --========================
+    -- Señales para el DUT
+    --========================
+    signal clk          : std_logic := '0';
+    signal reset        : std_logic := '1';
+
+    signal leds_enable  : std_logic := '0';
+    signal player_idx_a : integer range 1 to MAX_PLAYERS := 1;
+    signal out_apuestas : t_player_array := (others => 0);
+
+    signal leds         : std_logic_vector(11 downto 0);
+
+    --========================
+    -- Función auxiliar: genera la máscara esperada para N LEDs encendidos
+    -- Encendemos leds(i)='1' para i < n, con i = 0..11
+    --========================
+    function expected_mask(n : integer) return std_logic_vector is
+        variable m : std_logic_vector(11 downto 0) := (others => '0');
+    begin
+        for i in 0 to 11 loop
+            if i < n then
+                m(i) := '1';
+            else
+                m(i) := '0';
+            end if;
+        end loop;
+        return m;
+    end function;
+
+begin
+
+    --========================
+    -- Instancia del DUT
+    --========================
+    uut : entity work.leds_control
+        port map(
+            clk          => clk,
+            reset        => reset,
+            leds_enable  => leds_enable,
+            player_idx_a => player_idx_a,
+            out_apuestas => out_apuestas,
+            leds         => leds
+        );
+
+    --========================
+    -- Generador de reloj
+    --========================
+    clk <= not clk after CLK_PERIOD/2;
+
+    --========================
+    -- Proceso de estímulos (síncrono)
+    --========================
+    stim_proc : process
+        variable exp : std_logic_vector(11 downto 0);
+        variable val : integer;
+    begin
+        ------------------------------------------------------------
+        -- 1) Reset síncrono
+        ------------------------------------------------------------
+        -- Mantenemos reset activo unos ciclos
+        wait until rising_edge(clk);
+        wait until rising_edge(clk);
+        wait until rising_edge(clk);
+
+        -- Liberamos reset en flanco de subida
+        reset <= '0';
+
+        -- Comprobación tras reset (1-2 ciclos)
+        wait until rising_edge(clk);
+        wait until rising_edge(clk);
+        assert leds = (others => '0')
+            report "Tras reset, leds no está a 0."
+            severity error;
+
+        ------------------------------------------------------------
+        -- 2) Cargamos apuestas de ejemplo para jugadores
+        --    (puedes ajustar los valores a lo que uses en tu FSM)
+        ------------------------------------------------------------
+        wait until rising_edge(clk);
+        out_apuestas(1) <= 0;   -- jugador 1: 0 (ningún LED)
+        out_apuestas(2) <= 3;   -- jugador 2: 3 LEDs
+        out_apuestas(3) <= 7;   -- jugador 3: 7 LEDs
+        out_apuestas(4) <= 12;  -- jugador 4: 12 LEDs (barra completa)
+
+        ------------------------------------------------------------
+        -- 3) Caso: leds_enable = 0 => siempre apagados
+        ------------------------------------------------------------
+        wait until rising_edge(clk);
+        leds_enable  <= '0';
+        player_idx_a <= 2;  -- aunque sea 3, no debe verse
+
+        -- Esperamos 2 ciclos (por posible retardo interno)
+        wait until rising_edge(clk);
+        wait until rising_edge(clk);
+
+        assert leds = (others => '0')
+            report "Con leds_enable=0, los LEDs deberían estar apagados."
+            severity error;
+
+        ------------------------------------------------------------
+        -- 4) Caso: leds_enable = 1 y seleccionamos varios jugadores
+        ------------------------------------------------------------
+        leds_enable <= '1';
+
+        -- ---- Jugador 1: apuesta 0 ----
+        wait until rising_edge(clk);
+        player_idx_a <= 1;
+
+        wait until rising_edge(clk);
+        wait until rising_edge(clk);
+
+        val := out_apuestas(1);
+        exp := expected_mask(val);
+
+        assert leds = exp
+            report "Fallo jugador 1: esperado=" & to_hstring(exp) &
+                   " obtenido=" & to_hstring(leds)
+            severity error;
+
+        -- ---- Jugador 2: apuesta 3 ----
+        wait until rising_edge(clk);
+        player_idx_a <= 2;
+
+        wait until rising_edge(clk);
+        wait until rising_edge(clk);
+
+        val := out_apuestas(2);
+        exp := expected_mask(val);
+
+        assert leds = exp
+            report "Fallo jugador 2: esperado=" & to_hstring(exp) &
+                   " obtenido=" & to_hstring(leds)
+            severity error;
+
+        -- ---- Jugador 3: apuesta 7 ----
+        wait until rising_edge(clk);
+        player_idx_a <= 3;
+
+        wait until rising_edge(clk);
+        wait until rising_edge(clk);
+
+        val := out_apuestas(3);
+        exp := expected_mask(val);
+
+        assert leds = exp
+            report "Fallo jugador 3: esperado=" & to_hstring(exp) &
+                   " obtenido=" & to_hstring(leds)
+            severity error;
+
+        -- ---- Jugador 4: apuesta 12 (barra completa) ----
+        wait until rising_edge(clk);
+        player_idx_a <= 4;
+
+        wait until rising_edge(clk);
+        wait until rising_edge(clk);
+
+        val := out_apuestas(4);
+        exp := expected_mask(val);
+
+        assert leds = exp
+            report "Fallo jugador 4: esperado=" & to_hstring(exp) &
+                   " obtenido=" & to_hstring(leds)
+            severity error;
+
+        ------------------------------------------------------------
+        -- 5) Cambio dinámico de apuesta (simula que el registro cambia)
+        ------------------------------------------------------------
+        -- Cambiamos la apuesta del jugador 2 de 3 -> 5 y comprobamos
+        wait until rising_edge(clk);
+        player_idx_a      <= 2;
+        out_apuestas(2)   <= 5;
+
+        wait until rising_edge(clk);
+        wait until rising_edge(clk);
+
+        val := 5;
+        exp := expected_mask(val);
+
+        assert leds = exp
+            report "Fallo cambio dinámico (jugador 2 -> 5): esperado=" & to_hstring(exp) &
+                   " obtenido=" & to_hstring(leds)
+            severity error;
+
+        ------------------------------------------------------------
+        -- 6) Desactivar enable en caliente
+        ------------------------------------------------------------
+        wait until rising_edge(clk);
+        leds_enable <= '0';
+
+        wait until rising_edge(clk);
+        wait until rising_edge(clk);
+
+        assert leds = (others => '0')
+            report "Al desactivar leds_enable, los LEDs deberían apagarse."
+            severity error;
+
+        -- Fin de simulación
+        assert false report "Simulación finalizada (parada intencionada)." severity failure;
+    end process;
+
+end architecture;

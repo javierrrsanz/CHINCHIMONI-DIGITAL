@@ -38,7 +38,7 @@ begin
         elsif rising_edge(clk) then
 
             -- Valor estable leído del banco de registros
-            apuesta_val := out_apuestas(player_idx_a);
+            apuesta_val <= out_apuestas(player_idx_a);
 
             -- Construcción de barra decodificada
             for i in 0 to 11 loop

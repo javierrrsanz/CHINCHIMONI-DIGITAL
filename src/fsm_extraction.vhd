@@ -34,7 +34,7 @@ entity FSM_EXTRACTION is
         in_piedras   : out integer range 0 to MAX_PIEDRAS;
 
         -- Display de 4 dígitos
-        disp_code    : out std_logic_vector(15 downto 0)
+        disp_code    : out std_logic_vector(19 downto 0)
     );
 end FSM_EXTRACTION;
 

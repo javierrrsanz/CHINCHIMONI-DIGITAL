@@ -44,7 +44,7 @@ entity fsm_bet is
         leds_enable       : out std_logic;
 
         -- Display
-        disp_code          : out std_logic_vector(15 downto 0)
+        disp_code          : out std_logic_vector(19 downto 0)
     );
 end fsm_bet;
 
