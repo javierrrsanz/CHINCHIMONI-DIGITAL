@@ -23,7 +23,7 @@ entity FSM_SELECT_PLAYERS is
         -- Salidas
         we_players_out  : out std_logic;
         players_out     : out std_logic_vector(2 downto 0);
-        disp_code       : out std_logic_vector(15 downto 0)
+        disp_code       : out std_logic_vector(19 downto 0)
     );
 end FSM_SELECT_PLAYERS;
 
