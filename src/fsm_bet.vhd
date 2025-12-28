@@ -18,6 +18,9 @@ entity fsm_bet is
         confirm            : in  std_logic;
         switches           : in  std_logic_vector(3 downto 0);
 
+        -- Request de AI_PLAYER para apostar
+        ai_request_bet     : out  std_logic;
+
         -- Temporizador externo (pulso)
         timer_start        : out std_logic;
         timeout_5s         : in  std_logic;
@@ -75,6 +78,9 @@ architecture behavioral of fsm_bet is
   signal auxiliar        : integer range 1 to MAX_PLAYERS;
   signal offset   : integer range 0 to MAX_PLAYERS-1;
 
+  signal ai_request_reg : std_logic;
+  signal ai_request_flag : std_logic;
+
 
 begin
 
@@ -107,6 +113,8 @@ begin
                 state          <= S_IDLE;
                 player_idx     <= 1;
                 apuesta_value  <= 0;
+                ai_request_reg <= '0';
+                ai_request_flag <= '0';
 
             else
                 case state is
@@ -114,16 +122,25 @@ begin
                     when S_IDLE =>
                         player_idx     <= 1;
                         apuesta_value  <= 0;
+                        ai_request_flag <= '0';
                         if start = '1' then
                             state <= S_WAIT;
                         end if;
 
                     when S_WAIT =>
+                        if auxiliar = 1 and ai_request_flag = '0' then
+                            ai_request_reg <= '1';
+                            ai_request_flag <= '1';
+                        else
+                            ai_request_reg <= '0';
+                        end if;
+
                         if confirm = '1' then
                             state <= S_CHECK;
                         end if;
 
                     when S_CHECK =>
+                        ai_request_flag <= '0';
                         -- Validar apuesta
                         if (val_int > MAX_APUESTA) or
                            (val_int = 0) or
@@ -164,6 +181,8 @@ begin
     end process FSM_PROCESS;
 
     -- Logica combinacional salidas
+
+    ai_request_bet <= ai_request_reg;
 
     timer_start <= '1' when state = S_CHECK else '0';
 
