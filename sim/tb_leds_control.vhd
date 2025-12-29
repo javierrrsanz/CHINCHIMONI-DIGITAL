@@ -15,8 +15,8 @@
 --  IMPORTANTE:
 --    En el DUT, leds <= mask dentro del mismo proceso donde mask se actualiza
 --    con <=. Esto suele introducir 1 ciclo de retardo (leds muestra el mask
---    "anterior"). Por eso, en este TB comprobamos 2 ciclos después de cambiar
---    estímulos, para evitar falsos fallos.
+--    "anterior"). Por eso, en este TB comprobamos 2 ciclos despues de cambiar
+--    estimulos, para evitar falsos fallos.
 --====================================================================
 
 library IEEE;
@@ -31,12 +31,12 @@ end entity;
 architecture tb of tb_leds_control is
 
     --========================
-    -- Parámetros de reloj
+    -- Parametros de reloj
     --========================
     constant CLK_PERIOD : time := 8 ns; -- 125 MHz
 
     --========================
-    -- Señales para el DUT
+    -- Senales para el DUT
     --========================
     signal clk          : std_logic := '0';
     signal reset        : std_logic := '1';
@@ -48,7 +48,7 @@ architecture tb of tb_leds_control is
     signal leds         : std_logic_vector(11 downto 0);
 
     --========================
-    -- Función auxiliar: genera la máscara esperada para N LEDs encendidos
+    -- Funcion auxiliar: genera la mascara esperada para N LEDs encendidos
     -- Encendemos leds(i)='1' para i < n, con i = 0..11
     --========================
     function expected_mask(n : integer) return std_logic_vector is
@@ -85,14 +85,14 @@ begin
     clk <= not clk after CLK_PERIOD/2;
 
     --========================
-    -- Proceso de estímulos (síncrono)
+    -- Proceso de estimulos (sincrono)
     --========================
     stim_proc : process
         variable exp : std_logic_vector(11 downto 0);
         variable val : integer;
     begin
         ------------------------------------------------------------
-        -- 1) Reset síncrono
+        -- 1) Reset sincrono
         ------------------------------------------------------------
         -- Mantenemos reset activo unos ciclos
         wait until rising_edge(clk);
@@ -106,7 +106,7 @@ begin
         wait until rising_edge(clk);
         wait until rising_edge(clk);
         assert leds = (others => '0')
-            report "Tras reset, leds no está a 0."
+            report "Tras reset, leds no esta a 0."
             severity error;
 
         ------------------------------------------------------------
@@ -131,7 +131,7 @@ begin
         wait until rising_edge(clk);
 
         assert leds = (others => '0')
-            report "Con leds_enable=0, los LEDs deberían estar apagados."
+            report "Con leds_enable=0, los LEDs deberian estar apagados."
             severity error;
 
         ------------------------------------------------------------
@@ -200,7 +200,7 @@ begin
             severity error;
 
         ------------------------------------------------------------
-        -- 5) Cambio dinámico de apuesta (simula que el registro cambia)
+        -- 5) Cambio dinamico de apuesta (simula que el registro cambia)
         ------------------------------------------------------------
         -- Cambiamos la apuesta del jugador 2 de 3 -> 5 y comprobamos
         wait until rising_edge(clk);
@@ -214,7 +214,7 @@ begin
         exp := expected_mask(val);
 
         assert leds = exp
-            report "Fallo cambio dinámico (jugador 2 -> 5): esperado=" & to_hstring(exp) &
+            report "Fallo cambio dinamico (jugador 2 -> 5): esperado=" & to_hstring(exp) &
                    " obtenido=" & to_hstring(leds)
             severity error;
 
@@ -228,11 +228,11 @@ begin
         wait until rising_edge(clk);
 
         assert leds = (others => '0')
-            report "Al desactivar leds_enable, los LEDs deberían apagarse."
+            report "Al desactivar leds_enable, los LEDs deberian apagarse."
             severity error;
 
-        -- Fin de simulación
-        assert false report "Simulación finalizada (parada intencionada)." severity failure;
+        -- Fin de simulacion
+        assert false report "Simulacion finalizada (parada intencionada)." severity failure;
     end process;
 
 end architecture;

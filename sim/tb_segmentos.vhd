@@ -1,9 +1,9 @@
 --====================================================================
 --  Testbench: segmentos_tb.vhd
---  Objetivo : Banco de pruebas síncrono para segmentos.vhd (Vivado)
+--  Objetivo : Banco de pruebas sincrono para segmentos.vhd (Vivado)
 --             - Genera reloj a 125 MHz (periodo 8 ns)
 --             - Aplica y libera reset de forma síncrona
---             - Fuerza disp_code con 4 códigos (4 dígitos x 5 bits)
+--             - Fuerza disp_code con 4 codigos (4 digitos x 5 bits)
 --             - Monitoriza selector/segments y comprueba que coinciden
 --
 --  NOTA:
@@ -16,7 +16,7 @@
 
 library IEEE;
 use IEEE.STD_LOGIC_1164.ALL;
-use IEEE.NUMERIC_STD.ALL;ç
+use IEEE.NUMERIC_STD.ALL;
 use work.pkg_chinchimoni.ALL;
 
 
@@ -44,10 +44,10 @@ architecture tb of tb_segmentos is
     signal selector  : std_logic_vector(3 downto 0);
 
     --========================
-    -- Función auxiliar: empaqueta 4 dígitos (5 bits cada uno) en disp_code
-    -- Convención (como en tu segmentos.vhd):
-    --   d0 -> bits  (4 downto 0)  (dígito más a la derecha)
-    --   d3 -> bits (19 downto 15) (dígito más a la izquierda)
+    -- Función auxiliar: empaqueta 4 digitos (5 bits cada uno) en disp_code
+    -- Como en tu segmentos.vhd:
+    --   d0 -> bits  (4 downto 0)  (digito más a la derecha)
+    --   d3 -> bits (19 downto 15) (digito más a la izquierda)
     --========================
     function pack4(
         d3 : std_logic_vector(4 downto 0); -- izquierda
@@ -58,13 +58,15 @@ architecture tb of tb_segmentos is
         variable v : std_logic_vector(19 downto 0);
     begin
         v := d3 & d2 & d1 & d0;
+
         return v;
+
     end function;
 
     --========================
-    -- Función auxiliar: patrón esperado de segments para un código de 5 bits
+    -- Función auxiliar: patron esperado de segments para un codigo de 5 bits
     -- segments es activo en bajo (0 = segmento encendido)
-    -- Además, el DUT fuerza el punto decimal apagado: segments(7) = '1'
+    -- Ademas, el DUT fuerza el punto decimal apagado: segments(7) = '1'
     --========================
     function expected_segments(c : std_logic_vector(4 downto 0)) return std_logic_vector is
         variable s : std_logic_vector(7 downto 0);
@@ -103,15 +105,16 @@ architecture tb of tb_segmentos is
         end case;
 
         return s;
+
     end function;
 
     --========================
-    -- Función auxiliar: según selector, devuelve el carácter (5 bits) activo
+    -- Funcion auxiliar: según selector, devuelve el caracter (5 bits) activo
     -- selector es "one-hot" activo en alto en tu DUT:
-    --   "0001" -> dígito derecha  -> disp_code(4 downto 0)
+    --   "0001" -> digito derecha  -> disp_code(4 downto 0)
     --   "0010" ->                -> disp_code(9 downto 5)
     --   "0100" ->                -> disp_code(14 downto 10)
-    --   "1000" -> dígito izquierda-> disp_code(19 downto 15)
+    --   "1000" -> digito izquierda-> disp_code(19 downto 15)
     --========================
     function char_for_selector(
         sel : std_logic_vector(3 downto 0);
@@ -152,7 +155,7 @@ begin
     clk <= not clk after CLK_PERIOD/2;
 
     --========================
-    -- Estímulos (TODO síncrono)
+    -- Estimulos (TODO síncrono)
     -- - mantenemos reset algunos flancos
     -- - liberamos reset en un rising_edge
     -- - cambiamos disp_code siempre en rising_edge
@@ -164,7 +167,7 @@ begin
         wait until rising_edge(clk);
         wait until rising_edge(clk);
 
-        -- Liberación síncrona del reset
+        -- Liberacion síncrona del reset
         reset <= '0';
 
         -- 1) Mostrar "JUG " (izq->der: J U G blanco)
@@ -172,7 +175,7 @@ begin
         disp_code <= pack4(CHAR_J, CHAR_U, CHAR_G, CHAR_BLANK);
 
         -- Espera suficiente para ver varios refrescos
-        -- (tick ~ 250 us y 4 dígitos => ~1 ms por ciclo completo)
+        -- (tick ~ 250 us y 4 digitos => ~1 ms por ciclo completo)
         for i in 0 to 300000 loop
             wait until rising_edge(clk);
         end loop;
@@ -201,15 +204,16 @@ begin
             wait until rising_edge(clk);
         end loop;
 
-        -- Fin de simulación (parada intencionada)
-        assert false report "Simulación finalizada (parada intencionada)." severity failure;
+        -- Fin de simulacion (parada intencionada)
+        assert false report "Simulacion finalizada (parada intencionada)." severity failure;
+
     end process;
 
     --========================
     -- Comprobador/Monitor (síncrono)
     -- Idea:
-    --  - Cuando cambia selector, damos 1 ciclo para que se estabilice la salida
-    --  - Luego comparamos segments con el patrón esperado para el dígito activo
+    --    Cuando cambia selector, damos 1 ciclo para que se estabilice la salida
+    --    Luego comparamos segments con el patron esperado para el digito activo
     --========================
     check_proc : process(clk)
         variable last_sel : std_logic_vector(3 downto 0) := (others => '0');
@@ -222,4 +226,10 @@ begin
             else
                 -- El DUT fuerza el punto decimal apagado
                 assert segments(7) = '1'
-                    report "El bit DP (segments(7)) no está forzado a '1' (apagado)."
+                    report "El bit DP (segments(7)) no esta forzado a '1' (apagado)."
+            end if;
+         end if;
+
+    end process;
+
+end architecture;
