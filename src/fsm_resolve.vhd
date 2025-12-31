@@ -18,6 +18,7 @@ entity fsm_resolve is
         timeout_5s  : in  std_logic;
 
         -- Datos del juego (desde regbank)
+        num_players_vec : in std_logic_vector(2 downto 0);
         piedras     : in t_player_array;
         apuestas    : in t_player_array;
         puntos      : in t_player_array;
@@ -54,49 +55,112 @@ architecture behavioral of fsm_resolve is
     
     -- SEÑALES INTERNAS (placeholder)
     
-    signal winner_idx   : integer range 0 to MAX_PLAYERS;
-    signal total_stones : integer range 0 to MAX_PLAYERS * MAX_PIEDRAS;
+    signal round_winner_idx   : integer range 0 to MAX_PLAYERS;
+    signal game_winner_idx   : integer range 0 to MAX_PLAYERS;
+    
+    -- Señales del Register Bank
+    type t_u5_array is array (1 to MAX_PLAYERS)of unsigned(4 downto 0);
+    signal piedras_u : t_u5_array;
+    signal apuestas_u : t_u5_array;
+    signal puntos_u : t_u5_array;
+
+    signal num_players : integer range 2 to MAX_PLAYERS;
+    signal total_stones : integer range 0 to (MAX_PLAYERS * MAX_PIEDRAS);
+
+    -- señales de control
+    done_internal : std_logic;
+
+
 
 begin
 
-      FSM_PROCESS : process(clk)
+   -- Conversión de entradas a unsigned/integer
+
+    num_players <= to_integer(unsigned(num_players_vec)) ;
+   
+    Type_Change : process(clk)
+    begin
+        if rising_edge(clk) then
+           if reset = '1' then
+               for i in 1 to MAX_PLAYERS loop
+                   piedras_u(i) <= (others => '0');
+                   apuestas_u(i) <= (others => '0');
+               end loop;
+               total_stones <= 0;
+           else
+               for i in 1 to num_players loop
+                   piedras_u(i) <= to_unsigned(piedras(i), 5);
+                   apuestas_u(i) <= to_unsigned(apuestas(i), 5);
+                   puntos_u(i) <= to_unsigned(puntos(i), 5);
+               end loop; 
+               total_stones <= piedras_u(1)+piedras_u(2)+piedras_u(3)+piedras_u(4); 
+           end if;  
+        end if;
+    end process;  
+
+    FSM_PROCESS : process(clk)
     begin
         if rising_edge(clk) then
             if reset = '1' then
                 state       <= S_IDLE;
-                winner_idx  <= 0;
+                round_winner_idx  <= 0;
+                game_winner_idx  <= 0;
                 total_stones <= 0;
 
             else
                 case state is
 
                     when S_IDLE =>
+                        round_winner_idx  <= 0;
+                        game_winner_idx  <= 0;
                         if start = '1' then
                             state <= S_EXTRACTIONS;
                         end if;
 
                     when S_EXTRACTIONS =>
-                        -- lógica futura
-                        null;
+                        if timeout_5s = '1' then
+                            state <= S_TOTAL;
+                        end if;
+                       
 
                     when S_TOTAL =>
-                        -- lógica futura
-                        null;
+                        if timeout_5s = '1' then
+                            state <= S_BETS;
+                        end if;
 
                     when S_BETS =>
-                        -- lógica futura
-                        null;
+                        if timeout_5s = '1' then
+                          for i in 1 to num_players loop
+                              if apuestas_u(i) = total_stones then
+                                  
+                                  round_winner_idx <= i;
+                              end if;
+                          end loop;
+                            state <= S_WINNER;
+                        end if;
 
                     when S_WINNER =>
-                        -- lógica futura
-                        null;
+                        if timeout_5s = '1' then
+                            state <= S_ROUNDS;
+
+                        end if;
 
                     when S_ROUNDS =>
-                        -- lógica futura
-                        null;
+                        if timeout_5s = '1' then
+                            for i in 1 to num_players loop
+                                if puntos_u(i) = 3 then
+                                    game_winner_idx <= i;
+                                    state <= S_END;
+                                end if;
+                            end loop;
+                            if game_winner_idx = 0 then
+                                state <= S_IDLE; -- Nueva ronda
+                            end if;
+
+                        end if;
 
                     when S_END =>
-                        state <= S_IDLE;
+                        null;
 
                     when others =>
                         state <= S_IDLE;
