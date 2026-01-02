@@ -29,6 +29,7 @@ entity game_regbank is
         -- 4. Puntuación (Desde FSM_RESOLVER - Futuro)
         we_puntos       : in  std_logic;
         winner_idx      : in  integer range 0 to MAX_PLAYERS; -- Quién ganó la ronda (0=Nadie)
+        in_puntos       : in  integer range 0 to MAX_PLAYERS; -- No usado, solo para sintaxis
         
         -- ===========================
         -- PUERTOS DE LECTURA (Read)
