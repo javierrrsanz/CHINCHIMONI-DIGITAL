@@ -40,7 +40,7 @@ begin
     process(clk)
         variable v_valida : boolean;
     begin
-        if rising_edge(clk) then
+        if clk'event and clk = '1' then
             if reset = '1' then
                 state <= IDLE;
                 decision_ready <= '0';
@@ -56,12 +56,16 @@ begin
 
                     when DECIDE_EXTRACT =>
                         -- Limitamos el valor de 4 bits (0-15) a 0-3 usando mod 4
+                        if primera_ronda = '1' then
+                        temp_decision <= 1+ rnd_int mod 3;
+                        else
                         temp_decision <= rnd_int mod 4;
+                        end if;
                         state <= DONE;
 
                     when DECIDE_BET =>
                         -- Decisión inicial de apuesta (0 a 12)
-                        temp_decision <= rnd_int mod 13;
+                        temp_decision <= piedras_ia + rnd_int mod (13-piedras_ia);
                         state <= VALIDATE_BET;
 
                     when VALIDATE_BET =>
@@ -75,16 +79,16 @@ begin
                         end loop;
 
                         -- Regla 2: En primera ronda no mentir (apuesta <= piedras_propias)
-                        if primera_ronda = '1' and temp_decision > piedras_ia then
-                            v_valida := false;
-                        end if;
+                        --if primera_ronda = '1' and temp_decision > piedras_ia then
+                            --v_valida := false;
+                        --end if;
 
                         if v_valida then
                             state <= DONE;
                         else
                             -- Si no es válida, "re-lanzamos" sumando 1 (o esperando otro ciclo de rnd)
                             if temp_decision >= 12 then
-                                temp_decision <= 0;
+                                temp_decision <= piedras_ia;
                             else
                                 temp_decision <= temp_decision + 1;
                             end if;
