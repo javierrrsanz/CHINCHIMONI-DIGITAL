@@ -40,7 +40,6 @@ architecture Behavioral of fsm_main is
         S_EXTRACTION,      -- Fase 2: Sacar piedras
         S_BET,             -- Fase 3: Apostar
         S_RESOLVE,         -- Fase 4: Resolver ronda
-        S_GAME_OVER        -- Fase 5: Fin del juego
     );
     signal current_state, next_state : t_state;
 
@@ -80,6 +79,7 @@ begin
 
             -- FASE 1: Selección de Jugadores
             when S_SELECT_PLAYERS =>
+                reset_game_logic <= '0';
                 start_config <= '1';
                 if done_config = '1' then
                     next_state <= S_EXTRACTION;
@@ -103,19 +103,11 @@ begin
             when S_RESOLVE =>
                 start_resolve <= '1';
                 if done_resolve = '1' then
-                    if game_over_flag = '1' then
-                        next_state <= S_GAME_OVER;
-                    else
-                        next_state <= S_EXTRACTION; -- Nueva ronda
-                    end if;
+                    next_state <= S_EXTRACTION;
+                elsif btn_reinicio = '1' then
+                    next_state <= S_RESET; -- Reiniciar partida en cualquier momento
                 end if;
 
-            -- FASE 5: Fin del Juego
-            when S_GAME_OVER =>
-                if btn_reinicio = '1' then
-                    next_state <= S_RESET; -- Volver a empezar todo
-                end if;
-                
         end case;
     end process;
 
