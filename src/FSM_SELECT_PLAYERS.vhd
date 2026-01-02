@@ -46,8 +46,8 @@ architecture Behavioral of FSM_SELECT_PLAYERS is
     --signal int_done : std_logic;
     
     -- Valor de switches
-    signal num_jugadores : unsigned(3 downto 0);
-    signal players_reg   : std_logic_vector(2 downto 0);
+    signal num_jugadores : unsigned(4 downto 0);
+    signal players_reg   : std_logic_vector(4 downto 0);
 
 begin
     -- Switches a unsigned para trabajar comodo
@@ -82,7 +82,7 @@ begin
             --int_timer_start <= '1'; -- Arranca el timer
             if (num_jugadores >= MIN_PLAYERS and num_jugadores <= MAX_PLAYERS) then
               state  <= S_SHOW_OK;
-              players_reg <= std_logic_vector(num_jugadores(2 downto 0));
+              players_reg <= std_logic_vector(num_jugadores(4 downto 0));
             else
               state  <= S_ERROR;
             end if;
@@ -106,20 +106,17 @@ begin
   end process;
 
   -- Logica combinacional salidas
-  variable v_num_disp : std_logic_vector(3 downto 0);
-  v_num_disp := std_logic_vector(num_jugadores);
-
   we_players_out <= '1' when state = S_DONE else '0';
 
-  players_out <= players_reg; -- En algun momento habria que volver a poner a 0
+  players_out <= players_reg(2 downto 0); -- En algun momento habria que volver a poner a 0
 
   timer_start <= '1' when state = S_CHECK else '0';
 
   done <= '1' when state = S_DONE else '0';
 
   with state select
-    disp_code <=  CHAR_J & CHAR_U & CHAR_G & v_num_disp when S_WAIT_CONFIRM,
-                  CHAR_J & CHAR_U & CHAR_G & v_num_disp when S_SHOW_OK, -- Aqui hay q poner el registro en realidad
+    disp_code <=  CHAR_J & CHAR_U & CHAR_G & players_reg when S_WAIT_CONFIRM,
+                  CHAR_J & CHAR_U & CHAR_G & players_reg when S_SHOW_OK, -- Aqui hay q poner el registro en realidad
                   CHAR_J & CHAR_U & CHAR_G & CHAR_BLANK when S_ERROR,
                   CHAR_BLANK & CHAR_BLANK & CHAR_BLANK & CHAR_BLANK when others;
 
