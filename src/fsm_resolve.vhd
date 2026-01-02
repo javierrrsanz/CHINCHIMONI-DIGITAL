@@ -205,7 +205,7 @@ begin
 
     -- Escritura de puntos
     we_puntos <= '1' when (state = S_WINNER and timeout_5s = '1' and round_winner_idx /= 0) else '0';
-    in_puntos <= to_integer(unsigned(puntos_u(round_winner_idx))) + 1 when we_puntos = '1' else to_integer(unsigned(puntos_u(round_winner_idx)));
+    in_puntos <= to_integer(unsigned(puntos_u(round_winner_idx))) + 1 when (state = S_WINNER and timeout_5s = '1'and round_winner_idx /= 0) else 0;
     winner_idx <= round_winner_idx;
 
     done <= done_internal;
@@ -220,7 +220,7 @@ begin
                      std_logic_vector(apuestas_u(1))&std_logic_vector(apuestas_u(2))&std_logic_vector(apuestas_u(3))&std_logic_vector(apuestas_u(4)) when S_BETS,
                      CHAR_G & CHAR_A & CHAR_BLANK & std_logic_vector(to_unsigned(round_winner_idx,5)) when S_WINNER,
                      std_logic_vector(puntos_u(1))&std_logic_vector(puntos_u(2))&std_logic_vector(puntos_u(3))&std_logic_vector(puntos_u(4)) when S_ROUNDS,
-                     CHAR_F & CHAR_I & CHAR_n & CHAR_BLANK when S_END,
+                     CHAR_F & CHAR_I & CHAR_n & std_logic_vector(to_unsigned(round_winner_idx,5)) when S_END,
                      CHAR_BLANK & CHAR_BLANK & CHAR_BLANK & CHAR_BLANK when others;
     
 end architecture behavioral;
