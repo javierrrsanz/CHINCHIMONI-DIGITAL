@@ -117,5 +117,5 @@ begin
     end process;
 
     -- 3. Señal de Nueva Ronda
-    new_round <= new_round_reg;
+    new_round <= new_round_reg when current_state = S_RESOLVE else '0';
 end Behavioral;
