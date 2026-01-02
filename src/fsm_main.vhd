@@ -26,8 +26,9 @@ entity fsm_main is
         start_bet        : out std_logic;
         start_resolve    : out std_logic;
         
-        -- Señal para limpiar puntuaciones al iniciar nueva partida
-        reset_game_logic : out std_logic 
+        -- Señal para resetear registros de piedras y apuestas (regbank)
+        new_round        : out std_logic
+
     );
 end fsm_main;
 
@@ -42,6 +43,8 @@ architecture Behavioral of fsm_main is
         S_RESOLVE,         -- Fase 4: Resolver ronda
     );
     signal current_state, next_state : t_state;
+
+    signal new_round_reg : std_logic;
 
 begin
 
@@ -58,8 +61,7 @@ begin
     end process;
 
     -- 2. Lógica de Transición y Salidas
-    process(current_state, done_config, done_extract, done_bet, done_resolve, 
-            game_over_flag, btn_reinicio)
+    process(current_state, done_config, done_extract, done_bet, done_resolve, btn_reinicio)
     begin
         -- Valores por defecto (evita latches)
         next_state <= current_state;
@@ -68,18 +70,17 @@ begin
         start_extract    <= '0';
         start_bet        <= '0';
         start_resolve    <= '0';
-        reset_game_logic <= '0';
+        new_round_reg    <= '0';
 
         case current_state is
             
             -- Estado Inicial: Limpieza
             when S_RESET =>
-                reset_game_logic <= '1'; -- Mandamos borrar la memoria de juego
                 next_state <= S_SELECT_PLAYERS;
 
             -- FASE 1: Selección de Jugadores
             when S_SELECT_PLAYERS =>
-                reset_game_logic <= '0';
+                start_resolve <= '0';
                 start_config <= '1';
                 if done_config = '1' then
                     next_state <= S_EXTRACTION;
@@ -87,6 +88,7 @@ begin
 
             -- FASE 2: Extracción de Piedras
             when S_EXTRACTION =>
+                start_config <= '0';
                 start_extract <= '1';
                 if done_extract = '1' then
                     next_state <= S_BET;
@@ -94,6 +96,7 @@ begin
 
             -- FASE 3: Apuestas
             when S_BET =>
+                start_extract <= '0';
                 start_bet <= '1';
                 if done_bet = '1' then
                     next_state <= S_RESOLVE;
@@ -101,9 +104,11 @@ begin
 
             -- FASE 4: Resolución de la Ronda
             when S_RESOLVE =>
+                start_bet <= '0';
                 start_resolve <= '1';
                 if done_resolve = '1' then
                     next_state <= S_EXTRACTION;
+                    new_round_reg <= '1'; -- Señal de nueva ronda
                 elsif btn_reinicio = '1' then
                     next_state <= S_RESET; -- Reiniciar partida en cualquier momento
                 end if;
@@ -111,4 +116,6 @@ begin
         end case;
     end process;
 
+    -- 3. Señal de Nueva Ronda
+    new_round <= new_round_reg;
 end Behavioral;
