@@ -41,9 +41,6 @@ entity game_regbank is
         out_apuestas        : out t_player_array; -- Array con las apuestas de todos
         out_puntos          : out t_player_array; -- Array con las victorias
         
-        -- Flags de Estado
-        game_over           : out std_logic;      -- '1' si alguien llegó a 3 victorias
-        winner_global       : out integer range 0 to MAX_PLAYERS -- Quién ganó la partida
     );
 end game_regbank;
 
@@ -92,7 +89,7 @@ begin
                 -- 4. Actualizar Puntos (Incrementar victorias)
                 if we_puntos = '1' then
                     if winner_idx /= 0 then -- Solo si hay un ganador válido (1..4)
-                        reg_puntos(winner_idx) <= reg_puntos(winner_idx) + 1;
+                        reg_puntos(winner_idx) <= in_puntos;
                     end if;
                 end if;
                 
@@ -111,21 +108,5 @@ begin
     out_piedras  <= reg_piedras;
     out_apuestas <= reg_apuestas;
     out_puntos   <= reg_puntos;
-
-    -- 3. Detector de Game Over (¿Alguien tiene 3 puntos?)
-    -- Según PDF: "El ganador del juego será el primero en alcanzar tres rondas ganadas"
-    process(reg_puntos)
-    begin
-        game_over <= '0';
-        winner_global <= 0;
-        
-        -- Recorremos el array de puntos para ver si alguien llegó a 3
-        for i in 1 to MAX_PLAYERS loop
-            if reg_puntos(i) >= 3 then
-                game_over <= '1';
-                winner_global <= i; -- Guardamos quién es el campeón
-            end if;
-        end loop;
-    end process;
 
 end Behavioral;
