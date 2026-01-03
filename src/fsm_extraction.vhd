@@ -26,7 +26,7 @@ entity FSM_EXTRACTION is
 
         -- Información del juego
         num_players  : in integer range 1 to MAX_PLAYERS;  -- Hay que chequear como llega esta señal
-        first_round  : in std_logic;   -- '1' si es la primera ronda (no se permite 0)
+        rondadejuego : in integer range 0 to 100;   -- '0' si es la primera ronda
 
         -- Interfaz con el banco de registros (game_regbank)
         we_piedras   : out std_logic;
@@ -57,7 +57,7 @@ architecture behavioral of FSM_EXTRACTION is
   signal piedras_value   : integer range 0 to MAX_PIEDRAS;
   signal val_int         : integer range 0 to MAX_PIEDRAS;
 
-  signal player_idx_u    : unsigned(3 downto 0); -- Para visualizarlo con displays
+  signal player_idx_u    : unsigned(4 downto 0); -- Para visualizarlo con displays
 
   signal ai_request_reg  : std_logic;
   signal ai_request_flag  : std_logic;
@@ -101,7 +101,7 @@ begin
                     when S_CHECK =>
                         ai_request_flag <= '0';
                         if (val_int >= 0) and (val_int <= MAX_PIEDRAS) and
-                           not (first_round = '1' and val_int = 0) then
+                           not (rondadejuego = 0 and val_int = 0) then
                             -- Selección válida
                             piedras_value  <= val_int;
                             state          <= S_OK;
@@ -140,11 +140,11 @@ begin
 
     ai_extraction_request <= ai_request_reg;
 
-  we_piedras <= '1' when state = S_OK else '0';
+  we_piedras <= '1' when (state = S_OK and timeout_5s = '0') else '0';
   
   timer_start <= '1' when state = S_CHECK else '0';
 
-  player_idx_u <= to_unsigned(player_idx,4);
+  player_idx_u <= to_unsigned(player_idx,5);
   player_idx_p <= player_idx;
 
   in_piedras <= piedras_value;
