@@ -18,7 +18,7 @@ architecture Behavioral of ai_player_tb is
             primera_ronda       : in  std_logic;
             piedras_ia          : in  integer range 0 to MAX_PIEDRAS;
             decision_out        : out integer range 0 to MAX_APUESTA;
-            decision_ready      : out std_logic
+            
         );
     end component;
 
@@ -30,7 +30,7 @@ architecture Behavioral of ai_player_tb is
     signal primera_ronda  : std_logic := '0';
     signal piedras_ia     : integer := 0;
     signal decision_out   : integer;
-    signal decision_ready : std_logic;
+    
 
     constant clk_period : time := 8 ns; -- 125 MHz
 
@@ -41,7 +41,7 @@ begin
         extraction_req => extraction_req, bet_req => bet_req,
         rnd_val => rnd_val, primera_ronda => primera_ronda,
         piedras_ia => piedras_ia,
-        decision_out => decision_out, decision_ready => decision_ready
+        decision_out => decision_out, 
     );
 
     -- Reloj
@@ -66,7 +66,7 @@ begin
         rnd_val <= "0000"; -- mod 3 es 0, resultado esperado: 1
         extraction_req <= '1';
         
-        wait until decision_ready = '1';
+       
         wait for 5 * clk_period; -- Sincronismo
         extraction_req <= '0';
         wait for 2 us;
@@ -77,7 +77,7 @@ begin
         rnd_val <= "0011"; -- 2 + (3 mod 11) = 5
         bet_req <= '1';
         
-        wait until decision_ready = '1';
+        
         wait for 10 * clk_period;
         
         -- Simulamos que la FSM rechaza el '5' (baja el req para resetear la IA)
@@ -88,7 +88,7 @@ begin
         rnd_val <= "1000"; -- 2 + (8 mod 11) = 10
         bet_req <= '1';
         
-        wait until decision_ready = '1';
+        
         wait for 10 * clk_period;
         bet_req <= '0';
 
