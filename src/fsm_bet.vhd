@@ -71,7 +71,7 @@ architecture behavioral of fsm_bet is
   signal apuesta_value   : integer range 0 to MAX_APUESTA;
   signal val_int         : integer range 0 to MAX_APUESTA;
   signal num_players     : integer range 1 to MAX_PLAYERS;
-  signal player_idx_u    : unsigned(3 downto 0);
+  signal player_idx_u    : unsigned(4 downto 0);
 
   signal repeated_bet    : std_logic;
 
@@ -186,11 +186,11 @@ begin
 
     timer_start <= '1' when state = S_CHECK else '0';
 
-    we_apuesta <= '1' when state = S_OK else '0';
+    we_apuesta <= '1' when (state = S_OK and timeout_5s = '0') else '0';
     leds_enable <= '1' when state = S_OK else '0';
 
     player_idx_a <= auxiliar; -- Ajuste de índice circular
-    player_idx_u <= to_unsigned(auxiliar,4);
+    player_idx_u <= to_unsigned(auxiliar,5);
 
     in_apuesta <= apuesta_value;
 
