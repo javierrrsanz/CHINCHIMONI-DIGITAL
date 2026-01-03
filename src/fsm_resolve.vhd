@@ -215,12 +215,12 @@ begin
 
     -- Display (placeholder)
     with state select
-        disp_code <= std_logic_vector(piedras_u(1))&std_logic_vector(piedras_u(2))&std_logic_vector(piedras_u(3))&std_logic_vector(piedras_u(4)) when S_EXTRACTIONS,
-                     CHAR_BLANK & CHAR_BLANK & std_logic_vector(to_unsigned(total_tens, 5))&std_logic_vector(to_unsigned(total_units, 5)) when S_TOTAL,
-                     std_logic_vector(apuestas_u(1))&std_logic_vector(apuestas_u(2))&std_logic_vector(apuestas_u(3))&std_logic_vector(apuestas_u(4)) when S_BETS,
-                     CHAR_G & CHAR_A & CHAR_BLANK & std_logic_vector(to_unsigned(round_winner_idx,5)) when S_WINNER,
-                     std_logic_vector(puntos_u(1))&std_logic_vector(puntos_u(2))&std_logic_vector(puntos_u(3))&std_logic_vector(puntos_u(4)) when S_ROUNDS,
-                     CHAR_F & CHAR_I & CHAR_n & std_logic_vector(to_unsigned(round_winner_idx,5)) when S_END,
-                     CHAR_BLANK & CHAR_BLANK & CHAR_BLANK & CHAR_BLANK when others;
+        disp_code <= std_logic_vector(piedras_u(1)) & std_logic_vector(piedras_u(2)) & std_logic_vector(piedras_u(3)) & std_logic_vector(piedras_u(4))      when S_EXTRACTIONS,
+                     CHAR_BLANK & CHAR_BLANK  & std_logic_vector(to_unsigned(total_tens, 5)) & std_logic_vector(to_unsigned(total_units, 5))                when S_TOTAL,
+                     std_logic_vector(apuestas_u(1)) & std_logic_vector(apuestas_u(2)) & std_logic_vector(apuestas_u(3)) & std_logic_vector(apuestas_u(4))  when S_BETS,
+                     CHAR_G & CHAR_A & CHAR_BLANK & std_logic_vector(to_unsigned(round_winner_idx,5))                                                       when S_WINNER,
+                     std_logic_vector(puntos_u(1)) & std_logic_vector(puntos_u(2)) & std_logic_vector(puntos_u(3)) & std_logic_vector(puntos_u(4))          when S_ROUNDS,
+                     CHAR_F & CHAR_I & CHAR_n & std_logic_vector(to_unsigned(round_winner_idx,5))                                                           when S_END,
+                     CHAR_BLANK & CHAR_BLANK & CHAR_BLANK & CHAR_BLANK                                                                                      when others;
     
 end architecture behavioral;
