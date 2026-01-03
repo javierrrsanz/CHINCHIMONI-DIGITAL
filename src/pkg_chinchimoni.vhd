@@ -59,7 +59,7 @@ package pkg_chinchimoni is
     constant CHAR_P : std_logic_vector(4 downto 0) := "10001"; -- para "AP"
     constant CHAR_U : std_logic_vector(4 downto 0) := "10010"; -- para "JUG"
     constant CHAR_E : std_logic_vector(4 downto 0) := "10011"; -- para "E"=Error
-    constant CHAR_c : std_logic_vector(4 downto 0) := "10100"; -- para "ch"
+    constant CHAR_Cmin : std_logic_vector(4 downto 0) := "10100"; -- para "ch"
     constant CHAR_n : std_logic_vector(4 downto 0) := "10101"; -- para "FIn"
     constant CHAR_I : std_logic_vector(4 downto 0) := "10110"; -- para "FIn"
 
@@ -101,7 +101,7 @@ package pkg_chinchimoni is
     constant SEG_P : std_logic_vector(6 downto 0) := "0011000";
     constant SEG_U : std_logic_vector(6 downto 0) := "1000001"; 
     constant SEG_E : std_logic_vector(6 downto 0) := "0110000";
-    constant SEG_c : std_logic_vector(6 downto 0) := "1110010";
+    constant SEG_Cmin : std_logic_vector(6 downto 0) := "1110010";
     constant SEG_n : std_logic_vector(6 downto 0) := "1101010";
     constant SEG_I : std_logic_vector(6 downto 0) := "1001111";
 
