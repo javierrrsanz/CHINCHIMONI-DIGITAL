@@ -1,0 +1,99 @@
+library IEEE;
+use IEEE.STD_LOGIC_1164.ALL;
+use IEEE.NUMERIC_STD.ALL;
+use work.pkg_chinchimoni.ALL;
+
+entity ai_player_tb is
+end ai_player_tb;
+
+architecture Behavioral of ai_player_tb is
+
+    component ai_player
+        Port (
+            clk                 : in  std_logic;
+            reset               : in  std_logic;
+            extraction_req      : in  std_logic;
+            bet_req             : in  std_logic;
+            rnd_val             : in  std_logic_vector(3 downto 0);
+            primera_ronda       : in  std_logic;
+            piedras_ia          : in  integer range 0 to MAX_PIEDRAS;
+            decision_out        : out integer range 0 to MAX_APUESTA;
+            decision_ready      : out std_logic
+        );
+    end component;
+
+    signal clk            : std_logic := '0';
+    signal reset          : std_logic := '0';
+    signal extraction_req : std_logic := '0';
+    signal bet_req        : std_logic := '0';
+    signal rnd_val        : std_logic_vector(3 downto 0) := "0000";
+    signal primera_ronda  : std_logic := '0';
+    signal piedras_ia     : integer := 0;
+    signal decision_out   : integer;
+    signal decision_ready : std_logic;
+
+    constant clk_period : time := 8 ns; -- 125 MHz
+
+begin
+
+    uut: ai_player port map (
+        clk => clk, reset => reset,
+        extraction_req => extraction_req, bet_req => bet_req,
+        rnd_val => rnd_val, primera_ronda => primera_ronda,
+        piedras_ia => piedras_ia,
+        decision_out => decision_out, decision_ready => decision_ready
+    );
+
+    -- Reloj
+    clk_process : process
+    begin
+        clk <= '0'; wait for clk_period/2;
+        clk <= '1'; wait for clk_period/2;
+    end process;
+
+    -- Estímulos
+    stim_proc: process
+    begin		
+        -- Reset inicial
+        reset <= '1';
+        wait for 10 * clk_period;
+        reset <= '0';
+        wait for 1 us; -- Espera en microsegundos para estabilizar
+
+        -- TEST 1: Petición de Extracción (Primera Ronda)
+        report "Iniciando Test 1: Extraccion";
+        primera_ronda <= '1';
+        rnd_val <= "0000"; -- mod 3 es 0, resultado esperado: 1
+        extraction_req <= '1';
+        
+        wait until decision_ready = '1';
+        wait for 5 * clk_period; -- Sincronismo
+        extraction_req <= '0';
+        wait for 2 us;
+
+        -- TEST 2: Petición de Apuesta con "Rechazo" de la FSM
+        report "Iniciando Test 2: Apuesta con reintento";
+        piedras_ia <= 2;
+        rnd_val <= "0011"; -- 2 + (3 mod 11) = 5
+        bet_req <= '1';
+        
+        wait until decision_ready = '1';
+        wait for 10 * clk_period;
+        
+        -- Simulamos que la FSM rechaza el '5' (baja el req para resetear la IA)
+        bet_req <= '0';
+        wait for 5 * clk_period;
+        
+        -- Nueva petición con nuevo valor aleatorio
+        rnd_val <= "1000"; -- 2 + (8 mod 11) = 10
+        bet_req <= '1';
+        
+        wait until decision_ready = '1';
+        wait for 10 * clk_period;
+        bet_req <= '0';
+
+        wait for 5 us;
+        assert false report "Simulacion terminada correctamente" severity failure;
+    end process;
+
+end Behavioral;
