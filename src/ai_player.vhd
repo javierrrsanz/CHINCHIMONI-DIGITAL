@@ -22,7 +22,7 @@ entity ai_player is
 
         -- Salidas de decisión
         decision_out        : out integer range 0 to MAX_APUESTA;
-        decision_ready      : out std_logic
+        
     );
 end ai_player;
 
@@ -43,11 +43,11 @@ begin
         if clk'event and clk = '1' then
             if reset = '1' then
                 state <= IDLE;
-                decision_ready <= '0';
+                
             else
                 case state is
                     when IDLE =>
-                        decision_ready <= '0';
+                        
                         if extraction_req = '1' then
                             state <= DECIDE_EXTRACT;
                         elsif bet_req = '1' then
@@ -72,7 +72,7 @@ begin
 
                     when DONE =>
                         decision_out <= temp_decision;
-                        decision_ready <= '1';
+                        
                         -- Esperamos a que la FSM baje el request
                         if extraction_req = '0' and bet_req = '0' then
                             state <= IDLE;
