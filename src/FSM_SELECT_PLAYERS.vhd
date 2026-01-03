@@ -45,7 +45,7 @@ architecture Behavioral of FSM_SELECT_PLAYERS is
 
 begin
     -- Switches a unsigned para trabajar comodo
-    num_jugadores <= unsigned(switches); -- vhdl rellena con 0s a la izquierda
+    num_jugadores <= '0' & unsigned(switches); --relleno con 0s a la izquierda
 
     FSM_PROC : process(clk,reset)
   begin
