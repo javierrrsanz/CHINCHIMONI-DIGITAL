@@ -70,7 +70,7 @@ package pkg_chinchimoni is
     constant MSG_ERR : std_logic_vector(15 downto 0) := CHAR_E & CHAR_E & CHAR_E & CHAR_E; -- Ojo con blank
 
     -- =============================================================
-    -- 5. DISPLAY 7 SEGMENTOS ()
+    -- 5. DISPLAY 7 SEGMENTOS 
     -- =============================================================
     
     -- Control de los segmentos a,b,c,d,e,f,g (7)

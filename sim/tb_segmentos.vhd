@@ -29,7 +29,7 @@ architecture tb of tb_segmentos is
     --========================
     -- Parámetros del reloj
     --========================
-    constant CLK_PERIOD : time := 8 ns; -- 125 MHz => 8 ns
+    constant clk_period : time := 8 ns; -- 125 MHz => 8 ns
 
     --========================
     -- Señales del DUT (Device Under Test)
@@ -152,7 +152,13 @@ begin
     --========================
     -- Generador de reloj
     --========================
-    clk <= not clk after CLK_PERIOD/2;
+    clk_process : process
+    begin
+        clk <= '0';
+        wait for clk_period/2;
+        clk <= '1';
+        wait for clk_period/2;
+    end process;
 
     --========================
     -- Estimulos (TODO síncrono)
@@ -162,46 +168,43 @@ begin
     --========================
     stim_proc : process
     begin
-        -- Reset activo durante 3 ciclos
-        wait until rising_edge(clk);
-        wait until rising_edge(clk);
-        wait until rising_edge(clk);
-
-        -- Liberacion síncrona del reset
+      -- Reset sincrono: activo durante 3 ciclos
+        reset <= '1';
+        wait for 3*clk_period;
         reset <= '0';
 
         -- 1) Mostrar "JUG " (izq->der: J U G blanco)
-        wait until rising_edge(clk);
+        wait for clk_period;
         disp_code <= pack4(CHAR_J, CHAR_U, CHAR_G, CHAR_BLANK);
 
         -- Espera suficiente para ver varios refrescos
         -- (tick ~ 250 us y 4 digitos => ~1 ms por ciclo completo)
         for i in 0 to 300000 loop
-            wait until rising_edge(clk);
+            wait for clk_period;
         end loop;
 
         -- 2) Mostrar "ch 2" (c h blanco 2)
-        wait until rising_edge(clk);
+        wait for clk_period;
         disp_code <= pack4(CHAR_c, CHAR_h, CHAR_BLANK, CHAR_2);
 
         for i in 0 to 300000 loop
-            wait until rising_edge(clk);
+            wait for clk_period;
         end loop;
 
         -- 3) Mostrar "AP12" (A P 1 2)
-        wait until rising_edge(clk);
+        wait for clk_period;
         disp_code <= pack4(CHAR_A, CHAR_P, CHAR_1, CHAR_2);
 
         for i in 0 to 300000 loop
-            wait until rising_edge(clk);
+            wait for clk_period;
         end loop;
 
         -- 4) Mostrar "FIn " (F I n blanco)
-        wait until rising_edge(clk);
+        wait for clk_period;
         disp_code <= pack4(CHAR_F, CHAR_I, CHAR_n, CHAR_BLANK);
 
         for i in 0 to 300000 loop
-            wait until rising_edge(clk);
+            wait for clk_period;
         end loop;
 
         -- Fin de simulacion (parada intencionada)
@@ -220,16 +223,29 @@ begin
         variable c        : std_logic_vector(4 downto 0);
         variable exp      : std_logic_vector(7 downto 0);
     begin
-        if rising_edge(clk) then
-            if reset = '1' then
-                last_sel := (others => '0');
-            else
-                -- El DUT fuerza el punto decimal apagado
-                assert segments(7) = '1'
-                    report "El bit DP (segments(7)) no esta forzado a '1' (apagado)."
-            end if;
-         end if;
+         wait for clk_period;
 
-    end process;
+    if reset = '1' then
+        last_sel := (others => '0');
+    else
+        -- DP debe estar apagado
+        assert segments(7) = '1'
+            report "El bit DP (segments(7)) no esta forzado a '1'."
+            severity error;
+
+        -- Evitar comprobar justo cuando cambia selector
+        if selector /= last_sel then
+            last_sel := selector;
+        else
+            c   := char_for_selector(selector, disp_code);
+            exp := expected_segments(c);
+
+            assert segments = exp
+                report "Error en segments. Esperado=" & to_hstring(exp) &
+                       " obtenido=" & to_hstring(segments)
+                severity error;
+        end if;
+    end if;
+end process;
 
 end architecture;
