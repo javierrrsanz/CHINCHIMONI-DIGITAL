@@ -67,7 +67,7 @@ package pkg_chinchimoni is
 
     -- Mensajes Predefinidos (Helpers) para hacer el código más limpio
     -- Ejemplo: "Err "
-    constant MSG_ERR : std_logic_vector(15 downto 0) := CHAR_E & CHAR_E & CHAR_E & CHAR_E; -- Ojo con blank
+    constant MSG_ERR : std_logic_vector(19 downto 0) := CHAR_E & CHAR_E & CHAR_E & CHAR_E; -- Ojo con blank
 
     -- =============================================================
     -- 5. DISPLAY 7 SEGMENTOS 
