@@ -96,7 +96,7 @@ architecture tb of tb_segmentos is
             when CHAR_P => s := '1' & SEG_P;
             when CHAR_U => s := '1' & SEG_U;
             when CHAR_E => s := '1' & SEG_E;
-            when CHAR_c => s := '1' & SEG_c;
+            when CHAR_Cmin => s := '1' & SEG_Cmin;
             when CHAR_n => s := '1' & SEG_n;
             when CHAR_I => s := '1' & SEG_I;
 
@@ -185,7 +185,7 @@ begin
 
         -- 2) Mostrar "ch 2" (c h blanco 2)
         wait for clk_period;
-        disp_code <= pack4(CHAR_c, CHAR_h, CHAR_BLANK, CHAR_2);
+        disp_code <= pack4(CHAR_Cmin, CHAR_h, CHAR_BLANK, CHAR_2);
 
         for i in 0 to 300000 loop
             wait for clk_period;
@@ -218,34 +218,36 @@ begin
     --    Cuando cambia selector, damos 1 ciclo para que se estabilice la salida
     --    Luego comparamos segments con el patron esperado para el digito activo
     --========================
-    check_proc : process(clk)
-        variable last_sel : std_logic_vector(3 downto 0) := (others => '0');
-        variable c        : std_logic_vector(4 downto 0);
-        variable exp      : std_logic_vector(7 downto 0);
-    begin
-         wait for clk_period;
+    check_proc : process
+    variable last_sel : std_logic_vector(3 downto 0) := (others => '0');
+    variable c        : std_logic_vector(4 downto 0);
+    variable exp      : std_logic_vector(7 downto 0);
+begin
+    loop
+        wait for clk_period;
 
-    if reset = '1' then
-        last_sel := (others => '0');
-    else
-        -- DP debe estar apagado
-        assert segments(7) = '1'
-            report "El bit DP (segments(7)) no esta forzado a '1'."
-            severity error;
-
-        -- Evitar comprobar justo cuando cambia selector
-        if selector /= last_sel then
-            last_sel := selector;
+        if reset = '1' then
+            last_sel := (others => '0');
         else
-            c   := char_for_selector(selector, disp_code);
-            exp := expected_segments(c);
-
-            assert segments = exp
-                report "Error en segments. Esperado=" & to_hstring(exp) &
-                       " obtenido=" & to_hstring(segments)
+            -- DP debe estar apagado
+            assert segments(7) = '1'
+                report "El bit DP (segments(7)) no esta forzado a '1'."
                 severity error;
+
+            -- Evitar comprobar justo cuando cambia selector
+            if selector /= last_sel then
+                last_sel := selector;
+            else
+                c   := char_for_selector(selector, disp_code);
+                exp := expected_segments(CHAR_Cmin);
+
+                assert segments = exp
+                    report "Error en segments. Patron incorrecto"
+                    severity error;
+            end if;
         end if;
-    end if;
+    end loop;
 end process;
+
 
 end architecture;

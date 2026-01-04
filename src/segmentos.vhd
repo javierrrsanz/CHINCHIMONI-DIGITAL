@@ -74,6 +74,11 @@ end process;
             --    Usamos NUM_0..NUM_9 del pkg y añadimos letras del juego.
             --    Usamos las letras del juego:A/b/C/F/h/J/G/P/U/Edel pkg
             ----------------------------------------------------------------
+    process(clk)
+    begin
+
+        if rising_edge(clk) then
+           
             case current_char is
                 when CHAR_0 => seg_pat <= SEG_0;
                 when CHAR_1 => seg_pat <= SEG_1;
@@ -97,7 +102,7 @@ end process;
                 when CHAR_P => seg_pat <= SEG_P;
                 when CHAR_U => seg_pat <= SEG_U;
                 when CHAR_E => seg_pat <= SEG_E;
-                when CHAR_c => seg_pat <= SEG_c; 
+                when CHAR_Cmin => seg_pat <= SEG_Cmin; 
                 when CHAR_n => seg_pat <= SEG_n;
                 when CHAR_I => seg_pat <= SEG_I;
 
@@ -107,7 +112,8 @@ end process;
   
                 when others => seg_pat <= seg_off;
             end case;
-
+        end if;
+    end process;
             ----------------------------------------------------------------
             -- 5) Salida final: dp apagado siempre (1)
             ----------------------------------------------------------------
