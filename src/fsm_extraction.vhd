@@ -152,9 +152,9 @@ begin
   done <= '1' when state = S_DONE else '0';
 
   with state select
-    disp_code <= CHAR_C & CHAR_H & std_logic_vector(player_idx_u) & CHAR_BLANK when S_WAIT,
-                 CHAR_C & CHAR_H & std_logic_vector(player_idx_u) & CHAR_E     when S_ERROR,
-                 CHAR_C & CHAR_H & std_logic_vector(player_idx_u) & CHAR_C     when S_OK,
+    disp_code <= CHAR_C & CHAR_h & std_logic_vector(player_idx_u) & CHAR_BLANK when S_WAIT,
+                 CHAR_C & CHAR_h & std_logic_vector(player_idx_u) & CHAR_E     when S_ERROR,
+                 CHAR_C & CHAR_h & std_logic_vector(player_idx_u) & CHAR_C     when S_OK,
                  CHAR_BLANK & CHAR_BLANK & CHAR_BLANK & CHAR_BLANK when others;
 
 

@@ -11,7 +11,9 @@ entity segmentos is
         disp_code : in  std_logic_vector(19 downto 0);
 
         segments  : out std_logic_vector(7 downto 0); -- dp + abcdefg (activo-bajo)
-        selector  : out std_logic_vector(3 downto 0)  -- activo-alto
+        selector  : out std_logic_vector(3 downto 0); -- activo-alto
+
+       
     );
 end segmentos;
 
@@ -31,63 +33,46 @@ architecture Behavioral of segmentos is
 
 begin
 
-    process(clk, reset)
-    begin
-        if reset = '1' then
-            tick_cnt      <= 0;
-            tick          <= '0';
-            digit_sel     <= (others => '0');
-            selector      <= "0001";
-            current_char  <= (others => '0');
-            seg_pat       <= seg_off;
-            segments      <= (others => '1'); -- todo apagado
 
-        elsif rising_edge(clk) then
+process(clk)
+begin
+  if rising_edge(clk) then
+    if reset='1' then
+      tick_cnt  <= 0;
+      digit_sel <= (others=>'0');
+      selector  <= "0001";
+      current_char <= (others=>'0');
+    else
+      if tick_cnt = TICK_MAX then
+        tick_cnt  <= 0;
+        digit_sel <= digit_sel + 1;
+      else
+        tick_cnt <= tick_cnt + 1;
+      end if;
 
-            ----------------------------------------------------------------
-            -- 1) Generación del tick de refresco
-            ----------------------------------------------------------------
-            if tick_cnt = TICK_MAX then
-                tick_cnt <= 0;
-                tick     <= '1';
-            else
-                tick_cnt <= tick_cnt + 1;
-                tick     <= '0';
-            end if;
+      case digit_sel is
+        when "00" =>
+            selector <= "0001";
+            current_char <= disp_code(4 downto 0);
+        when "01" => 
+            selector <= "0010"; 
+            current_char <= disp_code(9 downto 5);
+        when "10" => 
+            selector <= "0100"; 
+            current_char <= disp_code(14 downto 10);
+        when others => 
+            selector <= "1000"; 
+            current_char <= disp_code(19 downto 15);
+      end case;
+    end if;
+  end if;
+end process;
 
-            ----------------------------------------------------------------
-            -- 2) Cambio de dígito (solo cuando tick=1)
-            ----------------------------------------------------------------
-            if tick = '1' then
-                digit_sel <= digit_sel + 1;
-            end if;
-
-            ----------------------------------------------------------------
-            -- 3) Selección de display + nibble y selector
-            --    (registrado, estable durante miles de ciclos)
-            ----------------------------------------------------------------
-            case digit_sel is
-                when "00" =>
-                    selector     <= "0001"; -- derecha
-                    current_char <= disp_code(4 downto 0);
-
-                when "01" =>
-                    selector     <= "0010";
-                    current_char <= disp_code(9 downto 5);
-
-                when "10" =>
-                    selector     <= "0100";
-                    current_char <= disp_code(14 downto 10);
-
-                when others =>
-                    selector     <= "1000"; -- izquierda
-                    current_char <= disp_code(19 downto 15);
-            end case;
 
             ----------------------------------------------------------------
             -- 4) Decodificación nibble -> segmentos (activo-bajo)
             --    Usamos NUM_0..NUM_9 del pkg y añadimos letras del juego.
-            --    Usamos las letras del juego:A/b/C/F/H/J/G/P/U/Edel pkg
+            --    Usamos las letras del juego:A/b/C/F/h/J/G/P/U/Edel pkg
             ----------------------------------------------------------------
             case current_char is
                 when CHAR_0 => seg_pat <= SEG_0;
@@ -128,7 +113,5 @@ begin
             ----------------------------------------------------------------
             segments <= '1' & seg_pat;
 
-        end if;
-    end process;
 
 end Behavioral;
