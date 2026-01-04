@@ -11,7 +11,7 @@ entity segmentos is
         disp_code : in  std_logic_vector(19 downto 0);
 
         segments  : out std_logic_vector(7 downto 0); -- dp + abcdefg (activo-bajo)
-        selector  : out std_logic_vector(3 downto 0); -- activo-alto
+        selector  : out std_logic_vector(3 downto 0) -- activo-alto
 
        
     );

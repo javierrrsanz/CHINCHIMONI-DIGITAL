@@ -47,6 +47,7 @@ architecture tb of tb_leds_control is
 
     signal leds         : std_logic_vector(11 downto 0);
 
+    constant LEDS_OFF : std_logic_vector(11 downto 0) := (others => '0');
     --========================
     -- Funcion auxiliar: genera la mascara esperada para N LEDs encendidos
     -- Encendemos leds(i)='1' para i < n, con i = 0..11
@@ -109,7 +110,7 @@ begin
         wait for clk_period;
         wait for clk_period;
         
-        assert leds = (others => '0')
+        assert leds = LEDS_OFF
             report "Tras reset, leds no esta a 0."
             severity error;
 
@@ -134,7 +135,7 @@ begin
        wait for clk_period;
        wait for clk_period;
 
-        assert leds = (others => '0')
+        assert leds = LEDS_OFF
             report "Con leds_enable=0, los LEDs deberian estar apagados."
             severity error;
 
@@ -153,8 +154,7 @@ begin
         exp := expected_mask(val);
 
         assert leds = exp
-            report "Fallo jugador 1: esperado=" & to_hstring(exp) &
-                   " obtenido=" & to_hstring(leds)
+          report "Fallo jugador 2: LEDs no coinciden con la apuesta"
             severity error;
 
         -- ---- Jugador 2: apuesta 3 ----
@@ -167,8 +167,7 @@ begin
         exp := expected_mask(val);
 
         assert leds = exp
-            report "Fallo jugador 2: esperado=" & to_hstring(exp) &
-                   " obtenido=" & to_hstring(leds)
+           report "Fallo jugador 2: LEDs no coinciden con la apuesta"
             severity error;
 
         -- ---- Jugador 3: apuesta 7 ----
@@ -181,8 +180,7 @@ begin
         exp := expected_mask(val);
 
         assert leds = exp
-            report "Fallo jugador 3: esperado=" & to_hstring(exp) &
-                   " obtenido=" & to_hstring(leds)
+          report "Fallo jugador 2: LEDs no coinciden con la apuesta"
             severity error;
 
         -- ---- Jugador 4: apuesta 12 (barra completa) ----
@@ -195,8 +193,7 @@ begin
         exp := expected_mask(val);
 
         assert leds = exp
-            report "Fallo jugador 4: esperado=" & to_hstring(exp) &
-                   " obtenido=" & to_hstring(leds)
+           report "Fallo jugador 2: LEDs no coinciden con la apuesta"
             severity error;
 
         ------------------------------------------------------------
@@ -214,8 +211,7 @@ begin
         exp := expected_mask(val);
 
         assert leds = exp
-            report "Fallo cambio dinamico (jugador 2 -> 5): esperado=" & to_hstring(exp) &
-                   " obtenido=" & to_hstring(leds)
+          report "Fallo jugador 2: LEDs no coinciden con la apuesta"
             severity error;
 
         ------------------------------------------------------------
@@ -226,7 +222,7 @@ begin
 
         wait for clk_period;
         wait for clk_period;
-        assert leds = (others => '0')
+        assert leds = LEDS_OFF
             report "Al desactivar leds_enable, los LEDs deberian apagarse."
             severity error;
 
