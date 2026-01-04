@@ -29,6 +29,9 @@ entity fsm_main is
         -- Señal para resetear registros de piedras y apuestas (regbank)
         new_round        : out std_logic
 
+        -- Señal indicador de fase actual 
+        current_phase    : out std_logic_vector(1 downto 0);
+
     );
 end fsm_main;
 
@@ -118,4 +121,13 @@ begin
 
     -- 3. Señal de Nueva Ronda
     new_round <= new_round_reg when current_state = S_RESOLVE else '0';
+
+    -- 4. Salida de Fase Actual
+    with current_state select
+        current_phase <= "00" when S_SELECT_PLAYERS,
+                         "01" when S_EXTRACTION,
+                         "10" when S_BET,
+                         "11" when S_RESOLVE,
+                         "00" when others;
+                         
 end Behavioral;

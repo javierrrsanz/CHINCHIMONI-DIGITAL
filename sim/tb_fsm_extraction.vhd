@@ -23,13 +23,13 @@ architecture Behavioral of tb_FSM_EXTRACTION is
     signal timeout_5s   : std_logic := '0';
 
     signal num_players  : integer := 4;
-    signal first_round  : std_logic := '1';
+    signal rondadejuego : integer range 0 to 100 := 0;
 
     signal we_piedras   : std_logic;
     signal player_idx_p : integer range 1 to MAX_PLAYERS;
     signal in_piedras   : integer range 0 to MAX_PIEDRAS;
 
-    signal disp_code    : std_logic_vector(15 downto 0);
+    signal disp_code    : std_logic_vector(19 downto 0);
 
 begin
 
@@ -57,7 +57,7 @@ begin
             timeout_5s   => timeout_5s,
 
             num_players  => num_players,
-            first_round  => first_round,
+            rondadejuego => rondadejuego,
 
             we_piedras   => we_piedras,
             player_idx_p => player_idx_p,

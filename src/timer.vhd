@@ -21,7 +21,7 @@ end timer_bloque;
 architecture Behavioral of timer_bloque is
 
     -- Contador: cuenta desde 0 hasta el valor definido en el pkg (5 segs)
-    signal cuenta : integer range 0 to TIMEOUT_5S_CYC;
+    signal cuenta : integer range 0 to TIMEOUT_5S_CYC;              --para simulacion poner 625 000(5ms)      sino TIMEOUT_5S_CYC
     
     -- Bandera para saber si el cronómetro está en marcha
     signal activo : std_logic;
@@ -50,7 +50,7 @@ begin
                 elsif activo = '1' then
                     -- Comprobamos si hemos llegado al final
                     -- (Restamos 1 porque el 0 también cuenta)
-                    if cuenta = TIMEOUT_5S_CYC - 1 then
+                    if cuenta = TIMEOUT_5S_CYC - 1 then            --para simulacion poner 625 000(5ms)      sino TIMEOUT_5S_CYC
                         timeout <= '1'; -- ¡Tiempo! Avisamos fuera
                         activo <= '0';  -- Apagamos el timer para ahorrar
                         cuenta <= 0;
