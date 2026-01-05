@@ -32,6 +32,15 @@ entity fsm_main is
         -- Señal indicador de fase actual 
         current_phase    : out std_logic_vector(1 downto 0);
 
+        -- disp_code generados por cada FSM
+        disp_code_config   : in std_logic_vector(19 downto 0);
+        disp_code_extract  : in std_logic_vector(19 downto 0);
+        disp_code_bet      : in std_logic_vector(19 downto 0);
+        disp_code_resolve  : in std_logic_vector(19 downto 0);     
+
+        -- disp_code final hacia segmentos
+        disp_code_out : out std_logic_vector(19 downto 0);
+        
     );
 end fsm_main;
 
@@ -129,5 +138,13 @@ begin
                          "10" when S_BET,
                          "11" when S_RESOLVE,
                          "00" when others;
-                         
+                        
+-- 5. Seleccion del disp_code segun la fase actual
+    with current_state select
+        disp_code_out <= disp_code_config   when S_SELECT_PLAYERS,
+                         disp_code_extract  when S_EXTRACTION,
+                         disp_code_bet      when S_BET,
+                         disp_code_resolve  when S_RESOLVE,
+                         disp_code_config   when others;
+                            
 end Behavioral;
