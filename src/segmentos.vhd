@@ -23,7 +23,6 @@ architecture Behavioral of segmentos is
     constant TICK_MAX : integer := 31250 - 1; -- 125MHz/4000
 
     signal tick_cnt   : integer range 0 to TICK_MAX := 0;
-    signal tick       : std_logic := '0';
 
     signal digit_sel  : unsigned(1 downto 0) := (others => '0');
 
@@ -74,46 +73,39 @@ end process;
             --    Usamos NUM_0..NUM_9 del pkg y añadimos letras del juego.
             --    Usamos las letras del juego:A/b/C/F/h/J/G/P/U/Edel pkg
             ----------------------------------------------------------------
-    process(clk)
+    decode_proc : process(current_char)
     begin
+        case current_char is
+            when CHAR_0 => seg_pat <= SEG_0;
+            when CHAR_1 => seg_pat <= SEG_1;
+            when CHAR_2 => seg_pat <= SEG_2;
+            when CHAR_3 => seg_pat <= SEG_3;
+            when CHAR_4 => seg_pat <= SEG_4;
+            when CHAR_5 => seg_pat <= SEG_5;
+            when CHAR_6 => seg_pat <= SEG_6;
+            when CHAR_7 => seg_pat <= SEG_7;
+            when CHAR_8 => seg_pat <= SEG_8;
+            when CHAR_9 => seg_pat <= SEG_9;
 
-        if rising_edge(clk) then
-           
-            case current_char is
-                when CHAR_0 => seg_pat <= SEG_0;
-                when CHAR_1 => seg_pat <= SEG_1;
-                when CHAR_2 => seg_pat <= SEG_2;
-                when CHAR_3 => seg_pat <= SEG_3;
-                when CHAR_4 => seg_pat <= SEG_4;
-                when CHAR_5 => seg_pat <= SEG_5;
-                when CHAR_6 => seg_pat <= SEG_6;
-                when CHAR_7 => seg_pat <= SEG_7;
-                when CHAR_8 => seg_pat <= SEG_8;
-                when CHAR_9 => seg_pat <= SEG_9;
+            when CHAR_A => seg_pat <= SEG_A;
+            when CHAR_b => seg_pat <= SEG_b;
+            when CHAR_C => seg_pat <= SEG_C;
+            when CHAR_F => seg_pat <= SEG_F;
+            when CHAR_h => seg_pat <= SEG_h;
+            when CHAR_J => seg_pat <= SEG_J;
+            when CHAR_G => seg_pat <= SEG_G;
+            when CHAR_P => seg_pat <= SEG_P;
+            when CHAR_U => seg_pat <= SEG_U;
+            when CHAR_E => seg_pat <= SEG_E;
+            when CHAR_Cmin => seg_pat <= SEG_Cmin;
+            when CHAR_n => seg_pat <= SEG_n;
+            when CHAR_I => seg_pat <= SEG_I;
 
-
-                when CHAR_A => seg_pat <= SEG_A;
-                when CHAR_b => seg_pat <= SEG_b;
-                when CHAR_C => seg_pat <= SEG_C;
-                when CHAR_F => seg_pat <= SEG_F;
-                when CHAR_h => seg_pat <= SEG_h;
-                when CHAR_J => seg_pat <= SEG_J;
-                when CHAR_G => seg_pat <= SEG_G;
-                when CHAR_P => seg_pat <= SEG_P;
-                when CHAR_U => seg_pat <= SEG_U;
-                when CHAR_E => seg_pat <= SEG_E;
-                when CHAR_Cmin => seg_pat <= SEG_Cmin; 
-                when CHAR_n => seg_pat <= SEG_n;
-                when CHAR_I => seg_pat <= SEG_I;
-
-                when CHAR_BLANK => seg_pat <= seg_off;
-
-
-  
-                when others => seg_pat <= seg_off;
-            end case;
-        end if;
+            when CHAR_BLANK => seg_pat <= seg_off;
+            when others     => seg_pat <= seg_off;
+        end case;
     end process;
+
             ----------------------------------------------------------------
             -- 5) Salida final: dp apagado siempre (1)
             ----------------------------------------------------------------

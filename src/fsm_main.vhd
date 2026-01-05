@@ -140,11 +140,26 @@ begin
                          "00" when others;
                         
 -- 5. Seleccion del disp_code segun la fase actual
-    with current_state select
-        disp_code_out <= disp_code_config   when S_SELECT_PLAYERS,
-                         disp_code_extract  when S_EXTRACTION,
-                         disp_code_bet      when S_BET,
-                         disp_code_resolve  when S_RESOLVE,
-                         disp_code_config   when others;
-                            
+    process(clk)
+begin
+    if rising_edge(clk) then
+        if reset = '1' then
+            disp_code_out <= disp_code_config; -- o BLANK
+        else
+            case current_state is
+                when S_SELECT_PLAYERS =>
+                    disp_code_out <= disp_code_config;
+                when S_EXTRACTION =>
+                    disp_code_out <= disp_code_extract;
+                when S_BET =>
+                    disp_code_out <= disp_code_bet;
+                when S_RESOLVE =>
+                    disp_code_out <= disp_code_resolve;
+                when others =>
+                    disp_code_out <= disp_code_config;
+            end case;
+        end if;
+    end if;
+end process;
+                   
 end Behavioral;
