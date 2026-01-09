@@ -17,7 +17,7 @@ architecture Behavioral of ai_player_tb is
             rnd_val             : in  std_logic_vector(3 downto 0);
             primera_ronda       : in  std_logic;
             piedras_ia          : in  integer range 0 to MAX_PIEDRAS;
-            decision_out        : out integer range 0 to MAX_APUESTA;
+            decision_out        : out integer range 0 to MAX_APUESTA
             
         );
     end component;
@@ -41,7 +41,7 @@ begin
         extraction_req => extraction_req, bet_req => bet_req,
         rnd_val => rnd_val, primera_ronda => primera_ronda,
         piedras_ia => piedras_ia,
-        decision_out => decision_out, 
+        decision_out => decision_out
     );
 
     -- Reloj

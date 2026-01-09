@@ -27,7 +27,7 @@ entity fsm_main is
         start_resolve    : out std_logic;
         
         -- Señal para resetear registros de piedras y apuestas (regbank)
-        new_round        : out std_logic
+        new_round        : out std_logic;
 
         -- Señal indicador de fase actual 
         current_phase    : out std_logic_vector(1 downto 0);
@@ -39,7 +39,7 @@ entity fsm_main is
         disp_code_resolve  : in std_logic_vector(19 downto 0);     
 
         -- disp_code final hacia segmentos
-        disp_code_out : out std_logic_vector(19 downto 0);
+        disp_code_out : out std_logic_vector(19 downto 0)
         
     );
 end fsm_main;
@@ -52,7 +52,7 @@ architecture Behavioral of fsm_main is
         S_SELECT_PLAYERS,  -- Fase 1: Elegir jugadores
         S_EXTRACTION,      -- Fase 2: Sacar piedras
         S_BET,             -- Fase 3: Apostar
-        S_RESOLVE,         -- Fase 4: Resolver ronda
+        S_RESOLVE          -- Fase 4: Resolver ronda
     );
     signal current_state, next_state : t_state;
 

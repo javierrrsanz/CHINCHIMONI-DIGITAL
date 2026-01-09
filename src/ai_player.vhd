@@ -21,7 +21,7 @@ entity ai_player is
        
 
         -- Salidas de decisión
-        decision_out        : out integer range 0 to MAX_APUESTA;
+        decision_out        : out integer range 0 to MAX_APUESTA
         
     );
 end ai_player;

@@ -45,7 +45,7 @@ entity game_regbank is
         out_puntos          : out t_player_array; -- Array con las victorias
 
         -- Ronda actual
-        out_rondadejuego : out integer range 0 to 100;
+        out_rondadejuego : out integer range 0 to 100
         
     );
 end game_regbank;

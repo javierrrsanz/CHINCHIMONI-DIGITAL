@@ -120,4 +120,7 @@ begin
 		wait for 2 ms;
 
       wait;
+    end process;
+end Behavioral;
+
 		
