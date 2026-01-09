@@ -106,7 +106,7 @@ begin
   with state select
     disp_code <=  CHAR_J & CHAR_U & CHAR_G & std_logic_vector(num_jugadores) when S_WAIT_CONFIRM, -- Aqui muestra switches
                   CHAR_J & CHAR_U & CHAR_G & players_reg when S_SHOW_OK, -- Aqui muestra registro
-                  CHAR_J & CHAR_U & CHAR_G & CHAR_BLANK when S_ERROR,
+                  CHAR_J & CHAR_U & CHAR_G & CHAR_E when S_ERROR,
                   CHAR_BLANK & CHAR_BLANK & CHAR_BLANK & CHAR_BLANK when others;
 
 end Behavioral;
