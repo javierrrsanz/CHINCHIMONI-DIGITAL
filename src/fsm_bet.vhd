@@ -43,7 +43,6 @@ entity fsm_bet is
         in_apuesta         : out integer range 0 to MAX_APUESTA;
 
         -- Leds
-
         leds_enable       : out std_logic;
 
         -- Display
@@ -74,13 +73,11 @@ architecture behavioral of fsm_bet is
   signal player_idx_u    : unsigned(4 downto 0);
 
   signal repeated_bet    : std_logic;
-
   signal auxiliar        : integer range 1 to MAX_PLAYERS;
-  signal offset   : integer range 0 to MAX_PLAYERS-1;
+  signal offset          : integer range 0 to MAX_PLAYERS-1;
 
   signal ai_request_reg : std_logic;
   signal ai_request_flag : std_logic;
-
 
 begin
 
@@ -88,18 +85,24 @@ begin
   val_int <= to_integer(unsigned(switches));
 
   -- Num jugadores desde vector
-  num_players <= to_integer(unsigned(out_num_players_vec)); -- Antes había un +1 aquí, revisar
+  num_players <= to_integer(unsigned(out_num_players_vec));
 
-  -- Señal auxiliar de jugador real
+  -- Señal auxiliar de jugador real (Gestión de turnos rotativos)
   offset   <= rondadejuego mod num_players;
-  auxiliar <= ((player_idx - 1 + offset) mod num_players) + 1; -- Ajuste de índice circular
+  auxiliar <= ((player_idx - 1 + offset) mod num_players) + 1;
+  
+  -- Ajuste de índice circular para visualización
+  player_idx_u <= to_unsigned(auxiliar, 5);
 
+  -- Proceso para detectar apuestas repetidas
   Repeated_bet_PROCESS : process(clk)
   begin
     if rising_edge(clk) then
         repeated_bet <= '0';
+        -- Solo comprobamos contra jugadores que YA han apostado en esta fase (i < player_idx)
         for i in 1 to MAX_PLAYERS loop
-            if (i < player_idx) and (apuestas_reg(((i - 1 + (rondadejuego mod num_players)) mod num_players) + 1) = val_int) then  -- Para que evalue la apuesta de los jugadores anteriores en el orden circular
+            -- Calculamos el ID real del jugador 'i' para mirar en el registro
+            if (i < player_idx) and (apuestas_reg(((i - 1 + offset) mod num_players) + 1) = val_int) then
                 repeated_bet <= '1';
             end if;
         end loop;
@@ -115,7 +118,6 @@ begin
                 apuesta_value  <= 0;
                 ai_request_reg <= '0';
                 ai_request_flag <= '0';
-
             else
                 case state is
 
@@ -128,6 +130,7 @@ begin
                         end if;
 
                     when S_WAIT =>
+                        -- Si le toca al Jugador 1 (la máquina), activamos request
                         if auxiliar = 1 and ai_request_flag = '0' then
                             ai_request_reg <= '1';
                             ai_request_flag <= '1';
@@ -141,11 +144,16 @@ begin
 
                     when S_CHECK =>
                         ai_request_flag <= '0';
+                        
                         -- Validar apuesta
-                        if (val_int > MAX_APUESTA) or
-                           (val_int = 0) or
-                           (rondadejuego = 0 and val_int > piedras_reg(player_idx)) or
-                           (repeated_bet = '1') then
+                        -- 1. Que no supere el máximo posible (NumJugadores * 3)
+                        -- 2. Que no se haya repetido
+                        -- 3. Regla "No Mentir" en Ronda 0: Apuesta no puede ser MENOR que mis piedras
+                        
+                        if (val_int > (num_players * 3)) or
+                           (repeated_bet = '1') or 
+                           (rondadejuego = 0 and val_int < piedras_reg(auxiliar)) then
+                            
                             -- Apuesta inválida
                             state <= S_ERROR;
                         else
@@ -172,9 +180,9 @@ begin
 
                     when S_DONE =>
                             state <= S_IDLE;
+                            
                     when others =>
                         state <= S_IDLE;
-
                 end case;
             end if;
         end if;
@@ -183,17 +191,14 @@ begin
     -- Logica combinacional salidas
 
     ai_request_bet <= ai_request_reg;
-
     timer_start <= '1' when state = S_CHECK else '0';
 
     we_apuesta <= '1' when (state = S_OK and timeout_5s = '0') else '0';
     leds_enable <= '1' when state = S_OK else '0';
 
-    player_idx_a <= auxiliar; -- Ajuste de índice circular
-    player_idx_u <= to_unsigned(auxiliar,5);
-
+    player_idx_a <= auxiliar; -- Índice del jugador actual (real)
     in_apuesta <= apuesta_value;
-
+    
     done <= '1' when state = S_DONE else '0';
 
     with state select
@@ -202,7 +207,5 @@ begin
        CHAR_A & CHAR_P & std_logic_vector(player_idx_u) & CHAR_E     when S_ERROR,
        CHAR_A & CHAR_P & std_logic_vector(player_idx_u) & CHAR_C     when S_OK,
        CHAR_BLANK & CHAR_BLANK & CHAR_BLANK & CHAR_BLANK             when others;
-
-
 
 end architecture behavioral;
