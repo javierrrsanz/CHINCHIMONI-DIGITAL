@@ -33,7 +33,7 @@ entity game_regbank is
 
         -- Control de ronda
         new_round      : in  std_logic;
-        
+
         -- ===========================
         -- PUERTOS DE LECTURA (Read)
         -- ===========================
@@ -54,10 +54,7 @@ architecture Behavioral of game_regbank is
 
     -- Registros Internos (Memoria)
     signal reg_rondadejuego : integer range 0 to 100;
-
-    -- Inicializamos a 2 jugadores por defecto
-    signal reg_num_players : integer range 0 to MAX_PLAYERS; 
-    
+    signal reg_num_players : integer range 0 to MAX_PLAYERS; -- Inicializamos a 2 jugadores por defecto
     -- Inicializamos arrays a cero (definidos en pkg)
     signal reg_piedras     : t_player_array := (others => 0);
     signal reg_apuestas    : t_player_array := (others => 0);
@@ -89,7 +86,9 @@ begin
                     -- Convertimos vector a integer para guardarlo fácil
                     reg_num_players <= to_integer(unsigned(in_num_players));
                     -- Por seguridad, al cambiar jugadores reiniciamos puntos
-                    reg_puntos <= (others => 0); 
+                    reg_puntos <= (others => 0);
+                    -- CORRECCIÓN CRÍTICA: Reiniciar contador de rondas al empezar partida
+                    reg_rondadejuego <= 0;
                 end if;
                 
                 -- 2. Guardar Piedras
@@ -119,7 +118,7 @@ begin
 
     -- 1. Conversión de integer a vector para el Top
     out_num_players_vec <= std_logic_vector(to_unsigned(reg_num_players, 3));
-    
+
     -- 2. Salida directa de arrays
     out_piedras  <= reg_piedras;
     out_apuestas <= reg_apuestas;
