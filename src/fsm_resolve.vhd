@@ -106,8 +106,9 @@ begin
                  -- CORRECCIÓN: Bucle estático (1 to MAX_PLAYERS) + Check dinámico
                 for i in 1 to MAX_PLAYERS loop
                     if i <= num_players then -- Solo chequeamos jugadores válidos
-                    if apuestas_u(i) = total_stones then -- Asi ahora se queda como ganador el último que acierte
-                        round_winner_idx <= i;
+                        if apuestas_u(i) = total_stones then -- Asi ahora se queda como ganador el último que acierte
+                            round_winner_idx <= i;
+                        end if;
                     end if;
                 end loop;
             end if;
@@ -123,8 +124,9 @@ begin
                  -- CORRECCIÓN: Bucle estático (1 to MAX_PLAYERS) + Check dinámico
                 for i in 1 to MAX_PLAYERS loop
                     if i <= num_players then -- Solo chequeamos jugadores válidos
-                    if puntos_u(i) = to_unsigned(3, 5) then 
-                        game_winner_idx <= i;
+                        if puntos_u(i) = to_unsigned(3, 5) then 
+                            game_winner_idx <= i;
+                        end if;
                     end if;
                 end loop;
             end if;
