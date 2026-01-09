@@ -20,6 +20,10 @@ architecture tb of tb_fsm_bet is
     signal done                : std_logic;
     signal confirm             : std_logic := '0';
     signal switches            : std_logic_vector(3 downto 0) := (others => '0');
+    
+    -- SEÑAL AÑADIDA para corregir error de puerto faltante
+    signal ai_request_bet      : std_logic;
+
     signal timer_start         : std_logic;
     signal timeout_5s          : std_logic := '0';
     signal rondadejuego        : integer range 0 to 100 := 0;
@@ -30,7 +34,7 @@ architecture tb of tb_fsm_bet is
     signal player_idx_a        : integer range 1 to MAX_PLAYERS;
     signal in_apuesta          : integer range 0 to MAX_APUESTA;
     signal leds_enable         : std_logic;
-    signal disp_code           : std_logic_vector(15 downto 0);
+    signal disp_code           : std_logic_vector(19 downto 0);
 
 begin
 
@@ -50,6 +54,10 @@ begin
             done                => done,
             confirm             => confirm,
             switches            => switches,
+            
+            -- CONEXIÓN AÑADIDA
+            ai_request_bet      => ai_request_bet,
+
             timer_start         => timer_start,
             timeout_5s          => timeout_5s,
             rondadejuego        => rondadejuego,
@@ -92,7 +100,8 @@ begin
         procedure expect_error(constant msg : string) is
         begin
             wait until rising_edge(clk);
-            assert disp_code(3 downto 0) = CHAR_E
+            -- Ojo: CHAR_E esta en pkg_chinchimoni
+            assert disp_code(4 downto 0) = CHAR_E
                 report "❌ ERROR esperado NO detectado: " & msg
                 severity error;
             report "✔️ ERROR detectado correctamente: " & msg;
@@ -120,10 +129,8 @@ begin
         -- TEST 1: NO MENTIR EN RONDA 0
         ------------------------------------------------------------
         report "===== TEST 1: NO MENTIR EN RONDA 0 =====";
-
         out_num_players_vec <= "010"; -- 2 jugadores
         rondadejuego <= 0;
-
         piedras_reg <= (others => 0);
         piedras_reg(1) <= 1;
         piedras_reg(2) <= 2;
@@ -147,10 +154,9 @@ begin
         -- TEST 2: ÍNDICE CIRCULAR (2,3,4 jugadores)
         ------------------------------------------------------------
         report "===== TEST 2: ÍNDICE CIRCULAR =====";
-
         for n_players in 2 to 4 loop
             out_num_players_vec <= std_logic_vector(to_unsigned(n_players,3));
-
+            
             for r in 0 to 6 loop
                 rondadejuego <= r;
                 wait for CLK_PERIOD;
@@ -161,7 +167,6 @@ begin
                            integer'image(n_players) & " jugadores, ronda " &
                            integer'image(r) & ")"
                     severity error;
-
                 report "✔️ Índice circular correcto (" &
                        integer'image(n_players) & " jugadores, ronda " &
                        integer'image(r) & ")";
@@ -172,7 +177,6 @@ begin
         -- TEST 3: NO REPETIR APUESTAS
         ------------------------------------------------------------
         report "===== TEST 3: NO REPETIR APUESTAS =====";
-
         out_num_players_vec <= "011"; -- 3 jugadores
         rondadejuego <= 1;
         apuestas_reg <= (others => 0);

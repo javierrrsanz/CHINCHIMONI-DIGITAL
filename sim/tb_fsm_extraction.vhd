@@ -12,12 +12,13 @@ architecture Behavioral of tb_FSM_EXTRACTION is
     -- Señales del DUT
     signal clk          : std_logic := '0';
     signal reset        : std_logic := '0';
-
     signal start        : std_logic := '0';
     signal done         : std_logic;
-
     signal confirm      : std_logic := '0';
     signal switches     : std_logic_vector(3 downto 0) := (others => '0');
+    
+    -- SEÑAL AÑADIDA para corregir error de puerto faltante
+    signal ai_extraction_request : std_logic;
 
     signal timer_start  : std_logic;
     signal timeout_5s   : std_logic := '0';
@@ -28,7 +29,6 @@ architecture Behavioral of tb_FSM_EXTRACTION is
     signal we_piedras   : std_logic;
     signal player_idx_p : integer range 1 to MAX_PLAYERS;
     signal in_piedras   : integer range 0 to MAX_PIEDRAS;
-
     signal disp_code    : std_logic_vector(19 downto 0);
 
 begin
@@ -37,7 +37,6 @@ begin
     -- Reloj
     --------------------------------------------------------------------
     clk <= not clk after 5 ns;
-
 
     --------------------------------------------------------------------
     -- Instancia del DUT
@@ -48,10 +47,14 @@ begin
             reset        => reset,
 
             start        => start,
+        
             done         => done,
 
             confirm      => confirm,
             switches     => switches,
+
+            -- CONEXIÓN AÑADIDA
+            ai_extraction_request => ai_extraction_request,
 
             timer_start  => timer_start,
             timeout_5s   => timeout_5s,
@@ -65,7 +68,6 @@ begin
 
             disp_code    => disp_code
         );
-
 
     --------------------------------------------------------------------
     -- SECUENCIA PRINCIPAL DEL TEST
@@ -91,7 +93,7 @@ begin
         --------------------------------------------------------------
         -- === JUGADOR 1 ===  (válido)
         --------------------------------------------------------------
-        switches <= "0010";              -- valor válido: 2
+        switches <= "0010"; -- valor válido: 2
         wait for 20 ns;
 
         confirm <= '1';
@@ -105,13 +107,13 @@ begin
 
 
         --------------------------------------------------------------
-        -- === JUGADOR 2 === (PRIMERO INVALIDO → LUEGO VALIDACIÓN)
+        -- === JUGADOR 2 === (PRIMERO INVALIDO -> LUEGO VALIDACIÓN)
         --------------------------------------------------------------
         
-        switches <= "0101";              -- valor inválido (>3)
+        switches <= "0101"; -- valor inválido (>3)
         wait for 20 ns;
 
-        confirm <= '1';                  -- provoca S_ERROR
+        confirm <= '1'; -- provoca S_ERROR
         wait for 20 ns;
         confirm <= '0';
 
@@ -119,7 +121,6 @@ begin
         timeout_5s <= '1';
         wait for 10 ns;
         timeout_5s <= '0';
-
 
         -- Ahora metemos valor válido
         switches <= "0001";
@@ -138,7 +139,7 @@ begin
         -- === JUGADOR 3 === (válido)
         --------------------------------------------------------------
         
-        switches <= "0011";              -- valor válido: 3
+        switches <= "0011"; -- valor válido: 3
         wait for 20 ns;
 
         confirm <= '1';
@@ -151,9 +152,9 @@ begin
         timeout_5s <= '0';
 
         --------------------------------------------------------------
-        -- === JUGADOR 4 === (PRIMERO INVALIDO → LUEGO VALIDACIÓN)
+        -- === JUGADOR 4 === (PRIMERO INVALIDO -> LUEGO VALIDACIÓN)
         --------------------------------------------------------------
-        switches <= "1001";              -- inválido (9)
+        switches <= "1001"; -- inválido (9)
         wait for 20 ns;
 
         confirm <= '1';
@@ -183,8 +184,6 @@ begin
         -- Esperamos final de fase
         --------------------------------------------------------------
         wait;
-
-
     end process;
 
 end Behavioral;
