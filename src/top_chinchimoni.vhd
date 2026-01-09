@@ -9,7 +9,7 @@ entity chinchimoni_top is
         reset    : in  std_logic; -- Reset global (Switch 0)
         
         switches : in  std_logic_vector(3 downto 0); 
-        botones  : in  std_logic_vector(3 downto 0); 
+        botones  : in  std_logic_vector(3 downto 1); 
         -- botones(1)=Continuar, botones(2)=Reinicio, botones(3)=Confirmar
         
         leds_4   : out std_logic_vector(3 downto 0);

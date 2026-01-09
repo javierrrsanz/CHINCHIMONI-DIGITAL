@@ -11,10 +11,10 @@ set_property -dict {PACKAGE_PIN N16 IOSTANDARD LVCMOS33} [get_ports {leds_4[2]}]
 set_property -dict {PACKAGE_PIN M14 IOSTANDARD LVCMOS33} [get_ports {leds_4[3]}]
 
 ## Botones (placa rosa BTN0-BTN3)
-set_property -dict {PACKAGE_PIN D19 IOSTANDARD LVCMOS33} [get_ports {botones[0]}]
-set_property -dict {PACKAGE_PIN D20 IOSTANDARD LVCMOS33} [get_ports {botones[1]}]
-set_property -dict {PACKAGE_PIN L20 IOSTANDARD LVCMOS33} [get_ports {botones[2]}]
-set_property -dict {PACKAGE_PIN L19 IOSTANDARD LVCMOS33} [get_ports {botones[3]}]
+set_property -dict {PACKAGE_PIN D19 IOSTANDARD LVCMOS33} [get_ports {botones[3]}]  #confirmacion
+set_property -dict {PACKAGE_PIN D20 IOSTANDARD LVCMOS33} [get_ports {botones[2]}]  #reincio
+set_property -dict {PACKAGE_PIN L20 IOSTANDARD LVCMOS33} [get_ports {botones[1]}]  #continuar
+
 
 #Selectores Displays (placa negra)
 set_property -dict { PACKAGE_PIN F20   IOSTANDARD LVCMOS33 } [get_ports { selector[0] }]; # Disp4
