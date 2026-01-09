@@ -30,6 +30,7 @@ set_property -dict { PACKAGE_PIN Y6    IOSTANDARD LVCMOS33 } [get_ports { segmen
 set_property -dict { PACKAGE_PIN W6    IOSTANDARD LVCMOS33 } [get_ports { segments[4] }]; #--23 segment 4 (c)
 set_property -dict { PACKAGE_PIN F19   IOSTANDARD LVCMOS33 } [get_ports { segments[5] }]; #--8  segment 5 (b)
 set_property -dict { PACKAGE_PIN Y9    IOSTANDARD LVCMOS33 } [get_ports { segments[6] }]; #--21 segment 6 (a)
+set_property -dict { PACKAGE_PIN W10 IOSTANDARD LVCMOS33 } [get_ports { segments[7] }]; # Punto decimal
 
 #LEDs (placa negra)
 set_property -dict { PACKAGE_PIN W18 IOSTANDARD LVCMOS33}  [get_ports {leds_8[0]}];
