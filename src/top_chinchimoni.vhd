@@ -191,8 +191,8 @@ begin
         player_idx_a => player_idx_a, out_apuestas => out_apuestas, leds => leds_12bit
     );
 
-    leds_4 <= leds_12bit(3 downto 0);
-    leds_8 <= leds_12bit(11 downto 4);
+    leds_4 <= leds_12bit(11 downto 8);
+    leds_8 <= leds_12bit(7 downto 0);
 
     inst_segments: entity work.segmentos
     port map(
