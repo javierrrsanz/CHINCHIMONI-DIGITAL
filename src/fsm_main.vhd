@@ -51,11 +51,11 @@ architecture Behavioral of fsm_main is
         S_RESET,           -- Estado inicial de limpieza
         S_SELECT_PLAYERS,  -- Fase 1: Elegir jugadores
         S_EXTRACTION,      -- Fase 2: Sacar piedras
-        S_BET,             -- Fase 3: Apostar
+        S_BET,            -- Fase 3: Apostar
         S_RESOLVE          -- Fase 4: Resolver ronda
     );
-    signal current_state, next_state : t_state;
 
+    signal current_state, next_state : t_state;
     signal new_round_reg : std_logic;
 
 begin
@@ -73,11 +73,10 @@ begin
     end process;
 
     -- 2. Lógica de Transición y Salidas
-    process(current_state, done_config, done_extract, done_bet, done_resolve, btn_reinicio)
+    process(current_state, done_config, done_extract, done_bet, done_resolve, btn_reinicio, game_over_flag)
     begin
         -- Valores por defecto (evita latches)
         next_state <= current_state;
-        
         start_config     <= '0';
         start_extract    <= '0';
         start_bet        <= '0';
@@ -119,10 +118,18 @@ begin
                 start_bet <= '0';
                 start_resolve <= '1';
                 if done_resolve = '1' then
-                    next_state <= S_EXTRACTION;
-                    new_round_reg <= '1'; -- Señal de nueva ronda
+                    -- CORRECCIÓN: Comprobamos si hay Game Over
+                    if game_over_flag = '0' then
+                        next_state <= S_EXTRACTION;
+                        new_round_reg <= '1'; -- Señal de nueva ronda
+                    else
+                        -- Si el juego ha terminado, nos quedamos aquí mostrando el ganador
+                        -- hasta que se pulse reinicio
+                        next_state <= S_RESOLVE; 
+                    end if;
                 elsif btn_reinicio = '1' then
-                    next_state <= S_RESET; -- Reiniciar partida en cualquier momento
+                    next_state <= S_RESET;
+                    -- Reiniciar partida en cualquier momento
                 end if;
 
         end case;
@@ -138,28 +145,28 @@ begin
                          "10" when S_BET,
                          "11" when S_RESOLVE,
                          "00" when others;
-                        
--- 5. Seleccion del disp_code segun la fase actual
+
+    -- 5. Seleccion del disp_code segun la fase actual
     process(clk)
-begin
-    if rising_edge(clk) then
-        if reset = '1' then
-            disp_code_out <= disp_code_config; -- o BLANK
-        else
-            case current_state is
-                when S_SELECT_PLAYERS =>
-                    disp_code_out <= disp_code_config;
-                when S_EXTRACTION =>
-                    disp_code_out <= disp_code_extract;
-                when S_BET =>
-                    disp_code_out <= disp_code_bet;
-                when S_RESOLVE =>
-                    disp_code_out <= disp_code_resolve;
-                when others =>
-                    disp_code_out <= disp_code_config;
-            end case;
+    begin
+        if rising_edge(clk) then
+            if reset = '1' then
+                disp_code_out <= disp_code_config; -- o BLANK
+            else
+                case current_state is
+                    when S_SELECT_PLAYERS =>
+                        disp_code_out <= disp_code_config;
+                    when S_EXTRACTION =>
+                        disp_code_out <= disp_code_extract;
+                    when S_BET =>
+                        disp_code_out <= disp_code_bet;
+                    when S_RESOLVE =>
+                        disp_code_out <= disp_code_resolve;
+                    when others =>
+                        disp_code_out <= disp_code_config;
+                end case;
+            end if;
         end if;
-    end if;
-end process;
+    end process;
                    
 end Behavioral;

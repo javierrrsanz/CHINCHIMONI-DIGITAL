@@ -30,30 +30,30 @@ architecture Structural of chinchimoni_top is
     signal start_config, start_extract, start_bet, start_resolve : std_logic;
     signal done_config, done_extract, done_bet, done_resolve : std_logic;
     signal new_round, game_over_flag : std_logic;
-    
+
     -- Señales de datos (RegBank)
     signal out_num_players_vec : std_logic_vector(2 downto 0);
     signal out_piedras      : t_player_array;
     signal out_apuestas     : t_player_array;
     signal out_puntos       : t_player_array;
     signal out_rondadejuego : integer range 0 to 100;
-    
+
     -- Señales de escritura
     signal we_num_players, we_piedras, we_apuesta, we_puntos : std_logic;
-    signal in_num_players_vec : std_logic_vector(2 downto 0); 
+    signal in_num_players_vec : std_logic_vector(2 downto 0);
     signal player_idx_p, player_idx_a, winner_idx_round : integer range 0 to MAX_PLAYERS;
     signal in_piedras, in_apuesta, in_puntos_val : integer;
 
     -- Señales de visualización
     signal disp_code_config, disp_code_extract, disp_code_bet, disp_code_resolve, disp_code_final : std_logic_vector(19 downto 0);
-    
+
     -- Señales del Timer
     signal timer_start_global : std_logic;
     signal t_start_cfg, t_start_ext, t_start_bet, t_start_res : std_logic;
     signal timeout_5s : std_logic;
     
     -- Señales IA
-    signal ai_extract_req, ai_bet_req, ai_primera_ronda : std_logic; 
+    signal ai_extract_req, ai_bet_req, ai_primera_ronda : std_logic;
     signal rnd_val : std_logic_vector(3 downto 0);
     signal ai_decision : integer range 0 to MAX_APUESTA;
     signal switches_mux : std_logic_vector(3 downto 0);
@@ -76,7 +76,7 @@ begin
     -- 2. IA Y RANDOM
     inst_rng: entity work.random_generator
     port map( clk => clk, reset => reset, rnd_out => rnd_val );
-    
+
     ai_primera_ronda <= '1' when out_rondadejuego = 0 else '0';
 
     inst_ai: entity work.ai_player
@@ -121,7 +121,9 @@ begin
         game_over_flag => game_over_flag,
         start_config => start_config, start_extract => start_extract,
         start_bet => start_bet, start_resolve => start_resolve,
+        
         new_round => new_round,
+        current_phase => open, -- CORRECCIÓN: Conectado a open
         disp_code_config => disp_code_config, disp_code_extract => disp_code_extract,
         disp_code_bet => disp_code_bet, disp_code_resolve => disp_code_resolve,
         disp_code_out => disp_code_final
@@ -188,6 +190,7 @@ begin
         clk => clk, reset => reset, leds_enable => leds_enable_bet,
         player_idx_a => player_idx_a, out_apuestas => out_apuestas, leds => leds_12bit
     );
+
     leds_4 <= leds_12bit(3 downto 0);
     leds_8 <= leds_12bit(11 downto 4);
 
