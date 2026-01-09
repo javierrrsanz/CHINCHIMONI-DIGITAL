@@ -133,7 +133,7 @@ begin
                         -- Si le toca al Jugador 1 (la máquina), activamos request
                         if auxiliar = 1 and ai_request_flag = '0' then
                             ai_request_reg <= '1';
-                            ai_request_flag <= '1';
+                            ai_request_flag <= '1'; -- Marcamos que ya hemos pedido
                         else
                             ai_request_reg <= '0';
                         end if;
@@ -143,13 +143,12 @@ begin
                         end if;
 
                     when S_CHECK =>
-                        ai_request_flag <= '0';
+                        -- CORRECCIÓN CRÍTICA: Bajar la petición para que la IA sepa que hemos leído
+                        -- y pueda resetearse para la próxima vez (si hay error).
+                        ai_request_reg <= '0'; 
+                        ai_request_flag <= '0'; -- Permitimos volver a pedir en S_WAIT si volvemos
                         
                         -- Validar apuesta
-                        -- 1. Que no supere el máximo posible (NumJugadores * 3)
-                        -- 2. Que no se haya repetido
-                        -- 3. Regla "No Mentir" en Ronda 0: Apuesta no puede ser MENOR que mis piedras
-                        
                         if (val_int > (num_players * 3)) or
                            (repeated_bet = '1') or 
                            (rondadejuego = 0 and val_int < piedras_reg(auxiliar)) then

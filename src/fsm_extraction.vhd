@@ -25,8 +25,8 @@ entity FSM_EXTRACTION is
         timeout_5s   : in  std_logic;
 
         -- Información del juego
-        num_players  : in integer range 1 to MAX_PLAYERS;  -- Hay que chequear como llega esta señal
-        rondadejuego : in integer range 0 to 100;   -- '0' si es la primera ronda
+        num_players  : in integer range 1 to MAX_PLAYERS;  
+        rondadejuego : in integer range 0 to 100;   
 
         -- Interfaz con el banco de registros (game_regbank)
         we_piedras   : out std_logic;
@@ -51,12 +51,11 @@ architecture behavioral of FSM_EXTRACTION is
     );
 
   signal state           : state_type;
-
--- Signal registros
+  
+  -- Signal registros
   signal player_idx      : integer range 1 to MAX_PLAYERS;
   signal piedras_value   : integer range 0 to MAX_PIEDRAS;
   signal val_int         : integer range 0 to MAX_PIEDRAS;
-
   signal player_idx_u    : unsigned(4 downto 0); -- Para visualizarlo con displays
 
   signal ai_request_reg  : std_logic;
@@ -75,7 +74,6 @@ begin
                 piedras_value  <= 0;
                 ai_request_reg <= '0';
                 ai_request_flag <= '0';
-
             else
                 case state is
 
@@ -99,7 +97,10 @@ begin
                         end if;
 
                     when S_CHECK =>
-                        ai_request_flag <= '0';
+                        -- CORRECCIÓN: Resetear handshake para que la IA libere
+                        ai_request_reg <= '0';
+                        ai_request_flag <= '0'; 
+
                         if (val_int >= 0) and (val_int <= MAX_PIEDRAS) and
                            not (rondadejuego = 0 and val_int = 0) then
                             -- Selección válida
@@ -128,9 +129,8 @@ begin
                         end if;
 
                     when S_DONE =>
-                        
                         state <= S_IDLE;
-
+                        
                 end case;
             end if;
         end if;
@@ -139,16 +139,13 @@ begin
 -- Logica Combinacional Salidas
 
     ai_extraction_request <= ai_request_reg;
-
-  we_piedras <= '1' when (state = S_OK and timeout_5s = '0') else '0';
-  
-  timer_start <= '1' when state = S_CHECK else '0';
+    we_piedras <= '1' when (state = S_OK and timeout_5s = '0') else '0';
+    timer_start <= '1' when state = S_CHECK else '0';
 
   player_idx_u <= to_unsigned(player_idx,5);
   player_idx_p <= player_idx;
 
   in_piedras <= piedras_value;
-
   done <= '1' when state = S_DONE else '0';
 
   with state select
