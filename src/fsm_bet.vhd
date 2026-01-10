@@ -1,7 +1,6 @@
 library IEEE;
 use IEEE.STD_LOGIC_1164.ALL;
 use IEEE.NUMERIC_STD.ALL;
-
 use work.pkg_chinchimoni.ALL;
 
 entity fsm_bet is
@@ -18,7 +17,7 @@ entity fsm_bet is
         switches            : in  std_logic_vector(3 downto 0);
 
         -- Request de AI_PLAYER para apostar
-        ai_request_bet      : out  std_logic;
+        ai_request_bet      : out std_logic;
 
         -- Temporizador externo (pulso)
         timer_start         : out std_logic;
@@ -51,7 +50,7 @@ end fsm_bet;
 
 architecture behavioral of fsm_bet is
 
-    -- Estados
+    -- ESTADOS
     type state_type is (
         S_IDLE,       -- Esperando start
         S_WAIT,       -- Mostrar "bX" y esperar confirm
@@ -63,7 +62,7 @@ architecture behavioral of fsm_bet is
 
     signal state           : state_type;
 
-    -- Senales internas
+    -- SEÑALES INTERNAS
     signal player_idx      : integer range 1 to MAX_PLAYERS;
     signal apuesta_value   : integer range 0 to MAX_APUESTA;
     signal val_int         : integer range 0 to MAX_APUESTA;
@@ -79,17 +78,13 @@ architecture behavioral of fsm_bet is
 
 begin
 
-    -- switches a entero 
-    val_int <= to_integer(unsigned(switches));
+    -- Conversión de entradas
+    val_int      <= to_integer(unsigned(switches));
+    num_players  <= to_integer(unsigned(out_num_players_vec));
 
-    -- Num jugadores desde vector
-    num_players <= to_integer(unsigned(out_num_players_vec));
-
-    -- Señal auxiliar de jugador real (Gestión de turnos rotativos)
-    offset   <= rondadejuego mod num_players;
-    auxiliar <= ((player_idx - 1 + offset) mod num_players) + 1;
-    
-    -- Ajuste de índice circular para visualización
+    -- Lógica de turnos rotativos (Tu implementación original)
+    offset       <= rondadejuego mod num_players;
+    auxiliar     <= ((player_idx - 1 + offset) mod num_players) + 1;
     player_idx_u <= to_unsigned(auxiliar, 5);
 
     -- Proceso para detectar apuestas repetidas
@@ -97,16 +92,15 @@ begin
     begin
         if rising_edge(clk) then
             repeated_bet <= '0';
-            -- Solo comprobamos contra jugadores que YA han apostado en esta fase (i < player_idx)
             for i in 1 to MAX_PLAYERS loop
-             -- Calculamos el ID real del jugador 'i' para mirar en el registro
                 if (i < player_idx) and (apuestas_reg(((i - 1 + offset) mod num_players) + 1) = val_int) then
                     repeated_bet <= '1';
                 end if;
             end loop;
         end if;
-    end process Repeated_bet_PROCESS;
+    end process;
 
+    -- MÁQUINA DE ESTADOS PRINCIPAL
     FSM_PROCESS : process(clk)
     begin
         if rising_edge(clk) then
@@ -140,21 +134,17 @@ begin
                         end if;
 
                     when S_CHECK =>
-                        -- Validar apuesta
+                        -- Validación de apuesta (Mantenemos tus condiciones)
                         if (val_int > (num_players * 3)) or
                            (repeated_bet = '1') or 
                            (rondadejuego = 0 and val_int < piedras_reg(auxiliar)) then
                             
-                            -- Error: reseteamos flags de IA para poder volver a pedir si es necesario
-                            ai_request_reg <= '0';
+                            ai_request_reg  <= '0';
                             ai_request_flag <= '0';
-                            
-                            -- Apuesta inválida
                             state <= S_ERROR;
                         else
-                            -- Apuesta válida
-                            apuesta_value <= val_int;
-                            ai_request_reg <= '0'; -- Ya tenemos el dato, podemos bajar la petición
+                            apuesta_value  <= val_int;
+                            ai_request_reg <= '0';
                             state <= S_OK;
                         end if;
 
@@ -165,8 +155,7 @@ begin
 
                     when S_OK =>                    
                         if timeout_5s = '1' then
-                            ai_request_flag <= '0'; -- Reset para el siguiente jugador
-                            -- Preparar siguiente jugador
+                            ai_request_flag <= '0';
                             if player_idx < num_players then
                                 player_idx <= player_idx + 1;
                                 state <= S_WAIT;
@@ -183,27 +172,18 @@ begin
                 end case;
             end if;
         end if;
-    end process FSM_PROCESS;
+    end process;
 
-    -------------------------------------------------------
-    -- LOGICA COMBINACIONAL DE SALIDAS
-    -------------------------------------------------------
-
+    -- SALIDAS COMBINACIONALES
     ai_request_bet <= ai_request_reg;
     timer_start    <= '1' when state = S_CHECK else '0';
-
-    -- Escritura en memoria: Solo cuando el estado es OK y el tiempo no ha acabado
     we_apuesta     <= '1' when (state = S_OK and timeout_5s = '0') else '0';
-
-    -- LEDs: Se activan SOLO en S_OK (los 5 segundos de confirmación)
     leds_enable    <= '1' when state = S_OK else '0';
-
-    -- Dato enviado a los LEDs y Memoria: Usamos el valor validado
     in_apuesta     <= apuesta_value;
-    
     player_idx_a   <= auxiliar;
     done           <= '1' when state = S_DONE else '0';
 
+    -- Gestión del Display (Mantenemos tus constantes de caracteres)
     with state select
     disp_code <=
         CHAR_A & CHAR_P & std_logic_vector(player_idx_u) & CHAR_BLANK when S_WAIT,

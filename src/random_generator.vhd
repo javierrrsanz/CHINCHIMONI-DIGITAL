@@ -2,41 +2,45 @@ library IEEE;
 use IEEE.STD_LOGIC_1164.ALL;
 use IEEE.NUMERIC_STD.ALL;
 
+-- Generador de numeros aleatorios basado en contador rapido
+-- Este bloque aprovecha la alta velocidad del reloj (125 MHz) para generar
+-- un valor que cambia tan rapido que resulta impredecible para el usuario.
 entity random_generator is
     Port (
-        clk     : in  std_logic;
-        reset   : in  std_logic; -- Solo para inicialización de la FPGA (Power-on)
+        clk     : in  std_logic; -- Reloj del sistema (125 MHz)
+        reset   : in  std_logic; -- Reset inicial de la placa
         
-        -- Salida de 4 bits (Valores 0 a 15)
-        -- La IA usará esto para decidir piedras (0-3) y apuestas (0-12)
+        -- Salida de 4 bits (Valores de 0 a 15)
+        -- Se usa en la IA para elegir piedras (0-3) y calcular apuestas.
         rnd_out : out std_logic_vector(3 downto 0)
     );
 end random_generator;
 
 architecture Behavioral of random_generator is
 
-    -- Contador interno de 4 bits (unsigned para poder sumar)
-    -- Se inicializa a 0, pero luego correrá libremente.
+    -- Contador interno de 4 bits. 
+    -- Al ser de 4 bits, vuelve a 0 automaticamente al llegar a 15.
     signal counter : unsigned(3 downto 0) := (others => '0');
 
 begin
 
-    -- Proceso libre a 125 MHz
-    -- NO reseteamos el contador con el reset del juego para garantizar
-    -- que el valor sea impredecible (depende del tiempo que la FPGA lleve encendida)
+    -- Proceso de conteo continuo a maxima velocidad
+    -- La clave de la aleatoriedad es que el contador no se resetea con la logica 
+    -- normal del juego, sino que depende del tiempo total de ejecucion.
     process(clk)
     begin
-        if clk'event and clk = '1' then
+        if rising_edge(clk) then
             if reset = '1' then
-                counter <= (others => '0'); -- Solo al encender la placa
+                -- Inicializacion al encender la FPGA o pulsar reset general
+                counter <= (others => '0');
             else
-                -- Cuenta continua ciclo a ciclo: 0, 1, 2... 15, 0, 1...
+                -- El contador suma 1 en cada ciclo de reloj (cada 8 nanosegundos)
                 counter <= counter + 1;
             end if;
         end if;
     end process;
 
-    -- Salida continua
+    -- Pasamos el valor del contador a la salida convirtiendolo a vector de bits
     rnd_out <= std_logic_vector(counter);
 
 end Behavioral;
