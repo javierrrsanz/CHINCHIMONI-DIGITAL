@@ -56,9 +56,10 @@ architecture Structural of chinchimoni_top is
     signal timeout_5s : std_logic;
     
     -- Señales IA
-    signal ai_extract_req, ai_bet_req, ai_primera_ronda : std_logic;
+    signal ai_extract_req, ai_bet_req: std_logic;
     signal rnd_val : std_logic_vector(3 downto 0);
-    signal ai_decision : integer range 0 to MAX_APUESTA;
+    signal ai_decision_out : integer range 0 to MAX_APUESTA;
+    signal ai_decision_done: std_logic;
     signal switches_mux : std_logic_vector(3 downto 0);
     signal confirm_mux  : std_logic;                    
 
@@ -80,27 +81,41 @@ begin
     inst_rng: entity work.random_generator
     port map( clk => clk, reset => reset, rnd_out => rnd_val );
 
-    ai_primera_ronda <= '1' when out_rondadejuego = 0 else '0';
+    
 
     inst_ai: entity work.ai_player
     port map(
         clk => clk, reset => reset,
         extraction_req => ai_extract_req, bet_req => ai_bet_req,
-        rnd_val => rnd_val, primera_ronda => ai_primera_ronda,
-        piedras_ia => out_piedras(1), decision_out => ai_decision
+        rnd_val => rnd_val, rondadejuego => out_rondadejuego,
+        piedras_ia => out_piedras(1), decision_out => ai_decision_out,
+        decision_done => ai_decision_done
     );
 
     -- 3. MUX ENTRADAS (IA vs Humano)
-    process(ai_extract_req, ai_bet_req, ai_decision, switches, btn_confirmar)
-    begin
-        if (ai_extract_req = '1' or ai_bet_req = '1') then
-            switches_mux <= std_logic_vector(to_unsigned(ai_decision, 4));
-            confirm_mux  <= '1'; 
-        else
-            switches_mux <= switches;
-            confirm_mux  <= btn_confirmar;
-        end if;
-    end process;
+
+
+    inst_input_mux: entity work.input_mux
+    port map (
+        clk            => clk,
+        reset          => reset,
+
+        -- Control IA
+        ai_extract_req => ai_extract_req,
+        ai_bet_req     => ai_bet_req,
+        ai_decision    => ai_decision_out,
+        decision_done  => ai_decision_done,
+
+        -- Entradas humanas
+        switches_human => switches,
+        confirm_human  => btn_confirmar,
+
+        -- Salidas multiplexadas
+        switches_mux   => switches_mux,
+        confirm_mux    => confirm_mux
+    );
+
+
 
     -- 4. REGBANK
     inst_regbank: entity work.game_regbank
