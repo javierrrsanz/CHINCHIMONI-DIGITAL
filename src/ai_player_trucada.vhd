@@ -10,10 +10,9 @@ entity ai_player is
         extraction_req  : in  std_logic;
         bet_req         : in  std_logic;
         rnd_val         : in  std_logic_vector(3 downto 0);
-        rondadejuego    : in  integer range 0 to 100;
+        primera_ronda   : in  std_logic;
         piedras_ia      : in  integer range 0 to MAX_PIEDRAS;
-        decision_out    : out integer range 0 to MAX_APUESTA;
-        decision_done   : out std_logic
+        decision_out    : out integer range 0 to MAX_APUESTA
     );
 end ai_player;
 
@@ -34,11 +33,9 @@ begin
                 state <= IDLE;
                 decision_out <= 0; -- CORRECCIÓN: Limpieza en reset
                 temp_decision <= 0;
-                decision_done <= '0';
             else
                 case state is
                     when IDLE =>
-                        decision_done <= '0';
                         if extraction_req = '1' then
                             state <= DECIDE_EXTRACT;
                         elsif bet_req = '1' then
@@ -48,22 +45,21 @@ begin
                     when DECIDE_EXTRACT =>
                         -- IA para sacar piedras (0-3)
                         -- Si es ronda 0, no puede sacar 0 piedras (mínimo 1)
-                        if rondadejuego = 0 then
-                            temp_decision <= 1 + (rnd_int mod 3); -- 1, 2 o 3
-                        else
-                            temp_decision <= rnd_int mod 4;       -- 0, 1, 2 o 3
-                        end if;
+                        --if primera_ronda = '1' then
+                            --temp_decision <= 1 ; 
+                        --else
+                            temp_decision <= 1;      
+                        --end if;
                         state <= DONE;
 
                     when DECIDE_BET =>
                         -- IA para apostar: Piedras propias + Aleatorio
                         -- Evita mentir por defecto (apuesta >= lo que tiene)
-                        temp_decision <= piedras_ia + (rnd_int mod (13 - piedras_ia));
+                        temp_decision <= 2;
                         state <= DONE;
 
                     when DONE =>
                         decision_out <= temp_decision;
-                        decision_done <= '1';
                         -- Esperamos handshake (que la FSM baje la petición)
                         if extraction_req = '0' and bet_req = '0' then
                             state <= IDLE;
