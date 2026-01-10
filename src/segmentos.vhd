@@ -73,8 +73,12 @@ end process;
             --    Usamos NUM_0..NUM_9 del pkg y añadimos letras del juego.
             --    Usamos las letras del juego:A/b/C/F/h/J/G/P/U/Edel pkg
             ----------------------------------------------------------------
-    decode_proc : process(current_char)
+    decode_proc : process(clk)
+    
     begin
+
+      if rising_edge(clk) then
+
         case current_char is
             when CHAR_0 => seg_pat <= SEG_0;
             when CHAR_1 => seg_pat <= SEG_1;
@@ -104,7 +108,9 @@ end process;
             when CHAR_BLANK => seg_pat <= seg_off;
             when others     => seg_pat <= seg_off;
         end case;
-    end process;
+    end if;
+end process;
+
 
             ----------------------------------------------------------------
             -- 5) Salida final: dp apagado siempre (1)
