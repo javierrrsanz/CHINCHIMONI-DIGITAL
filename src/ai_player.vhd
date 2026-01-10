@@ -10,9 +10,10 @@ entity ai_player is
         extraction_req  : in  std_logic;
         bet_req         : in  std_logic;
         rnd_val         : in  std_logic_vector(3 downto 0);
-        primera_ronda   : in  std_logic;
+        rondadejuego    : in  integer range 0 to 100;
         piedras_ia      : in  integer range 0 to MAX_PIEDRAS;
-        decision_out    : out integer range 0 to MAX_APUESTA
+        decision_out    : out integer range 0 to MAX_APUESTA;
+        decision_done   : out std_logic
     );
 end ai_player;
 
@@ -33,9 +34,11 @@ begin
                 state <= IDLE;
                 decision_out <= 0; -- CORRECCIÓN: Limpieza en reset
                 temp_decision <= 0;
+                decision_done <= '0';
             else
                 case state is
                     when IDLE =>
+                        decision_done <= '0';
                         if extraction_req = '1' then
                             state <= DECIDE_EXTRACT;
                         elsif bet_req = '1' then
@@ -45,7 +48,7 @@ begin
                     when DECIDE_EXTRACT =>
                         -- IA para sacar piedras (0-3)
                         -- Si es ronda 0, no puede sacar 0 piedras (mínimo 1)
-                        if primera_ronda = '1' then
+                        if rondadejuego = 0 then
                             temp_decision <= 1 + (rnd_int mod 3); -- 1, 2 o 3
                         else
                             temp_decision <= rnd_int mod 4;       -- 0, 1, 2 o 3
@@ -60,6 +63,7 @@ begin
 
                     when DONE =>
                         decision_out <= temp_decision;
+                        decision_done <= '1';
                         -- Esperamos handshake (que la FSM baje la petición)
                         if extraction_req = '0' and bet_req = '0' then
                             state <= IDLE;
