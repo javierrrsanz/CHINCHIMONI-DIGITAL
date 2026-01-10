@@ -3,7 +3,7 @@ use IEEE.STD_LOGIC_1164.ALL;
 use IEEE.NUMERIC_STD.ALL;
 use work.pkg_chinchimoni.ALL;
 
-entity chinchimoni_top is
+entity chinchimoni_top_trucada is
     Port (
         clk      : in  std_logic;
         reset    : in  std_logic; -- Reset global (Switch 0)
@@ -17,9 +17,9 @@ entity chinchimoni_top is
         segments : out std_logic_vector(7 downto 0);
         selector : out std_logic_vector(3 downto 0)
     );
-end chinchimoni_top;
+end chinchimoni_top_trucada;
 
-architecture Structural of chinchimoni_top is
+architecture Structural of chinchimoni_top_trucada is
 
     -- Señales internas de botones
     signal btn_continuar : std_logic;
@@ -82,7 +82,7 @@ begin
 
     ai_primera_ronda <= '1' when out_rondadejuego = 0 else '0';
 
-    inst_ai: entity work.ai_player
+    inst_ai: entity work.ai_player_trucada
     port map(
         clk => clk, reset => reset,
         extraction_req => ai_extract_req, bet_req => ai_bet_req,
@@ -183,7 +183,7 @@ begin
     port map(
         clk => clk, reset => reset,
         start => timer_start_global,
-        skip => btn_continuar,  -- CONEXIÓN CR�?TICA: Permite saltar pantallas
+        skip => btn_continuar,  -- CONEXIÓN CR�?TICA: Permite saltar pantallas
         timeout => timeout_5s
     );
 
