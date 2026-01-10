@@ -41,8 +41,11 @@ architecture Structural of chinchimoni_top is
     -- Señales de escritura
     signal we_num_players, we_piedras, we_apuesta, we_puntos : std_logic;
     signal in_num_players_vec : std_logic_vector(2 downto 0);
-    signal player_idx_p, player_idx_a, winner_idx_round : integer range 0 to MAX_PLAYERS;
-    signal in_piedras, in_apuesta, in_puntos_val : integer;
+    signal player_idx_p, player_idx_a: integer range 0 to MAX_PLAYERS;
+    signal winner_idx_round : integer range 1 to MAX_PLAYERS;
+    signal in_piedras      :  integer range 0 to MAX_PIEDRAS;
+    signal in_apuesta      :  integer range 0 to MAX_APUESTA;
+    signal in_puntos_val       :  integer range 0 to MAX_PLAYERS;
 
     -- Señales de visualización
     signal disp_code_config, disp_code_extract, disp_code_bet, disp_code_resolve, disp_code_final : std_logic_vector(19 downto 0);
@@ -180,7 +183,7 @@ begin
     port map(
         clk => clk, reset => reset,
         start => timer_start_global,
-        skip => btn_continuar,  -- CONEXIÓN CRÍTICA: Permite saltar pantallas
+        skip => btn_continuar,  -- CONEXIÓN CR�?TICA: Permite saltar pantallas
         timeout => timeout_5s
     );
 
