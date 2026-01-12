@@ -7,7 +7,7 @@ use work.pkg_chinchimoni.ALL;
 -- Este bloque selecciona quien tiene el control del juego: el humano o la IA.
 -- Si la IA esta calculando una jugada, sus valores pasan al sistema.
 -- Si no, el sistema lee directamente los switches y botones de la placa.
-entity input_mux is
+entity switches is
     Port (
         clk            : in  std_logic; -- Reloj de 125 MHz
         reset          : in  std_logic; -- Reset del sistema
@@ -26,9 +26,9 @@ entity input_mux is
         switches_mux   : out std_logic_vector(3 downto 0);
         confirm_mux    : out std_logic
     );
-end input_mux;
+end switches;
 
-architecture Behavioral of input_mux is
+architecture Behavioral of switches is
 begin
 
     -- Proceso de seleccion de datos sincronizado con el reloj
