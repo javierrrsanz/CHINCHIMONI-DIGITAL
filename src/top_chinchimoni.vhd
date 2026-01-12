@@ -96,7 +96,7 @@ begin
         extraction_req => ai_extract_req, bet_req => ai_bet_req,
         rnd_val => rnd_val, rondadejuego => out_rondadejuego,
         piedras_ia => out_piedras(1), decision_out => ai_decision_out,
-        decision_done => ai_decision_done
+        decision_done => ai_decision_done, num_players => out_num_players_vec
     );
 
     -- Mux de Entrada: Elige entre los switches físicos o la decisión de la IA
