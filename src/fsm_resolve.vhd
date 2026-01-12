@@ -56,6 +56,8 @@ architecture behavioral of fsm_resolve is
     -- Señales internas de proceso
     signal round_winner_idx : integer range 0 to MAX_PLAYERS;
     signal game_winner_idx  : integer range 0 to MAX_PLAYERS;
+    signal winner_latched   : integer range 0 to MAX_PLAYERS;
+    signal score_written    : std_logic;
     
     -- Arrays temporales para calculos en formato unsigned
     type t_u5_array is array (1 to MAX_PLAYERS) of unsigned(4 downto 0);
@@ -194,22 +196,47 @@ begin
         end if;
     end process;
 
+    -- 4.1 LATCH DEL GANADOR Y BLOQUEO DE ESCRITURA MULTIPLE
+    process(clk)
+    begin
+        if rising_edge(clk) then
+            if reset = '1' then
+                winner_latched <= 0;
+                score_written  <= '0';
+            else
+                case state is
+                    when S_BETS =>
+                        if timeout_5s = '1' then
+                            winner_latched <= round_winner_idx;
+                            score_written  <= '0';
+                        end if;
+                    when S_WINNER =>
+                        if timeout_5s = '1' then
+                            score_written <= '1';
+                        end if;
+                    when others =>
+                        null;
+                end case;
+            end if;
+        end if;
+    end process;
+
     -- 5. ASIGNACION DE SALIDAS
     timer_start <= timer_start_internal;
     done        <= done_internal;
     end_game    <= '1' when state = S_END else '0';
-    winner_idx  <= round_winner_idx;
+    winner_idx  <= winner_latched;
 
     -- Actualizacion de puntos: Se dispara solo un ciclo cuando acaba S_WINNER
-    we_puntos <= '1' when (state = S_WINNER and timeout_5s = '1' and round_winner_idx /= 0) else '0';
-    in_puntos <= to_integer(puntos_u(round_winner_idx)) + 1;
+    we_puntos <= '1' when (state = S_WINNER and timeout_5s = '1' and winner_latched /= 0 and score_written = '0') else '0';
+    in_puntos <= to_integer(puntos_u(winner_latched)) + 1 when winner_latched /= 0 else 0;
 
     -- Gestion de mensajes en el Display
     with state select
         disp_code <= std_logic_vector(piedras_u(1))  & std_logic_vector(piedras_u(2))  & std_logic_vector(piedras_u(3))  & std_logic_vector(piedras_u(4))  when S_EXTRACTIONS,
                      CHAR_BLANK & CHAR_BLANK & std_logic_vector(to_unsigned(total_tens, 5)) & std_logic_vector(to_unsigned(total_units, 5))            when S_TOTAL,
                      std_logic_vector(apuestas_u(1)) & std_logic_vector(apuestas_u(2)) & std_logic_vector(apuestas_u(3)) & std_logic_vector(apuestas_u(4)) when S_BETS,
-                     CHAR_G & CHAR_A & CHAR_BLANK & std_logic_vector(to_unsigned(round_winner_idx,5))                                                  when S_WINNER,
+                     CHAR_G & CHAR_A & CHAR_BLANK & std_logic_vector(to_unsigned(winner_latched,5))                                                     when S_WINNER,
                      std_logic_vector(puntos_u(1))   & std_logic_vector(puntos_u(2))   & std_logic_vector(puntos_u(3))   & std_logic_vector(puntos_u(4))   when S_ROUNDS,
                      CHAR_F & CHAR_I & CHAR_n & std_logic_vector(to_unsigned(game_winner_idx,5))                                                      when S_END,
                      CHAR_BLANK & CHAR_BLANK & CHAR_BLANK & CHAR_BLANK                                                                                when others;
