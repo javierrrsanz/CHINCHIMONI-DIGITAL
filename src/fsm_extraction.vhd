@@ -88,8 +88,7 @@ begin
                         if player_idx = 1 and ai_request_flag = '0' then
                             ai_request_reg  <= '1';
                             ai_request_flag <= '1';
-                        else
-                            ai_request_reg  <= '0';
+                     
                         end if;
 
                         if confirm = '1' then
