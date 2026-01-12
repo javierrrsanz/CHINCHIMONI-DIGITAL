@@ -100,7 +100,7 @@ begin
     );
 
     -- Mux de Entrada: Elige entre los switches físicos o la decisión de la IA
-    inst_input_mux: entity work.switches
+    inst_switches: entity work.switches
     port map (
         clk => clk, reset => reset,
         ai_extract_req => ai_extract_req, ai_bet_req => ai_bet_req,
