@@ -18,7 +18,7 @@ entity segmentos is
         segments  : out std_logic_vector(7 downto 0); -- Catodos (A-G + DP)
         selector  : out std_logic_vector(3 downto 0)  -- Anodos (Selección dígito)
     );
-end segmentos is;
+end segmentos;
 
 architecture Behavioral of segmentos is
 
@@ -53,7 +53,7 @@ begin
     end process;
 
     -- ------------------------------------------------------------------------
-    -- 2. MUX DE ENTRADA Y SELECTOR DE ÁNODO
+    -- 2. MUX DE ENTRADA Y SELECTOR DE �?NODO
     -- ------------------------------------------------------------------------
     process(digit_sel, disp_code)
     begin
