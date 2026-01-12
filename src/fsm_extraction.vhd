@@ -54,7 +54,7 @@ architecture behavioral of FSM_EXTRACTION is
     signal state            : state_type;
     signal player_idx       : integer range 1 to MAX_PLAYERS;
     signal piedras_value    : integer range 0 to MAX_PIEDRAS;
-    signal val_int          : integer range 0 to MAX_PIEDRAS;
+    signal val_int          : integer range 0 to 15;
     signal player_idx_u     : unsigned(4 downto 0); 
     signal ai_request_reg   : std_logic;
     signal ai_request_flag  : std_logic;
