@@ -54,7 +54,6 @@ architecture behavioral of fsm_resolve is
     signal state : state_type;
     
     -- Señales internas de proceso
-    signal round_winner_idx : integer range 0 to MAX_PLAYERS;
     signal game_winner_idx  : integer range 0 to MAX_PLAYERS;
     signal winner_latched   : integer range 0 to MAX_PLAYERS;
     signal score_written    : std_logic;
@@ -72,6 +71,32 @@ architecture behavioral of fsm_resolve is
 
     signal done_internal        : std_logic;
     signal timer_start_internal : std_logic;
+
+    -- ============SEÑALES DE LA MEJORA DE GANADOR APROXIMADO==============
+
+    -- Índice del jugador que se está evaluando
+    signal eval_idx : integer range 1 to MAX_PLAYERS := 1;
+
+    -- Diferencia absoluta entre apuesta y total
+    signal diff_sig : integer range 0 to 100 := 0;
+
+    -- Diferencia mínima encontrada
+    signal min_diff_sig : integer range 0 to 100 := 100;
+
+    -- Indica si ya se encontró un acierto exacto
+    signal exact_hit_found : std_logic := '0';
+
+    -- Ganador registrado de la ronda
+    signal winner_reg : integer range 1 to MAX_PLAYERS := 1;
+
+    -- Controla si el ganador ya está decidido
+    signal winner_valid : std_logic := '0';
+
+    -- 0 = calcular diff, 1 = comparar
+    signal eval_phase : std_logic := '0';  
+
+
+
 
 begin
 
@@ -92,24 +117,75 @@ begin
     total_tens   <= to_integer(total_stones) / 10;
     total_units  <= to_integer(total_stones) mod 10;
 
-    -- 2. PROCESO: IDENTIFICAR GANADOR DE RONDA
-    process(clk)
-    begin
-        if rising_edge(clk) then
-            if reset = '1' then
-                round_winner_idx <= 0;
-            else
-                round_winner_idx <= 0; -- Por defecto nadie gana
-                for i in 1 to MAX_PLAYERS loop
-                    if i <= num_players then 
-                        if apuestas_u(i) = total_stones then 
-                            round_winner_idx <= i; -- El ultimo en la lista que acierte gana
-                        end if;
+    
+ -- 2. PROCESO: IDENTIFICAR GANADOR DE RONDA CON LA MEJORA
+Winner_Calc_Proc : process(clk)
+begin
+    if rising_edge(clk) then
+        if reset = '1' then
+            eval_idx        <= 1;
+            min_diff_sig    <= 100;
+            exact_hit_found <= '0';
+            winner_reg      <= 1;
+            winner_valid    <= '0';
+            eval_phase <= '0';
+
+        ------------------------------------------------------------------
+        -- Reinicio al empezar nueva ronda
+        ------------------------------------------------------------------
+         elsif state = S_BETS and timeout_5s = '1' then
+         -- Se reinicia el cálculo justo antes de entrar en S_WINNER
+            eval_idx        <= 1;
+            min_diff_sig    <= 100;
+            exact_hit_found <= '0';
+            winner_valid    <= '0';
+            eval_phase      <= '0';
+
+
+        ----------------------------------------------------------------
+        -- Solo evaluamos jugadores válidos
+        ------------------------------------------------------------------
+        elsif state = S_WINNER and winner_valid = '0' then
+
+           if eval_idx <= num_players then
+
+              if eval_phase = '0' then
+                  -- FASE 1: calcular diferencia
+                  if apuestas_u(eval_idx) = total_stones then
+                    winner_reg      <= eval_idx;
+                    exact_hit_found <= '1';
+                    winner_valid    <= '1';   -- ganador decidido
+                    eval_phase      <= '0';   -- volver a fase inicial
+
+                  else
+                    if apuestas_u(eval_idx) > total_stones then
+                       diff_sig <= to_integer(apuestas_u(eval_idx) - total_stones);
+                    else
+                       diff_sig <= to_integer(total_stones - apuestas_u(eval_idx));
                     end if;
-                end loop;
-            end if;
-        end if;
-    end process;
+                    eval_phase <= '1';
+                  end if;
+
+              else
+                 -- FASE 2: comparar diferencia
+                 if exact_hit_found = '0' then
+                   if diff_sig < min_diff_sig then
+                      min_diff_sig <= diff_sig;
+                      winner_reg   <= eval_idx;
+                   end if;
+                 end if;
+
+                 eval_idx   <= eval_idx + 1;
+                 eval_phase <= '0';
+              end if;
+
+          else
+              winner_valid <= '1';
+          end if;
+
+      end if;
+end process;
+
 
     -- 3. PROCESO: IDENTIFICAR SI ALGUIEN HA GANADO EL JUEGO (3 Victorias)
     process(clk)
@@ -207,7 +283,7 @@ begin
                 case state is
                     when S_BETS =>
                         if timeout_5s = '1' then
-                            winner_latched <= round_winner_idx;
+                           winner_latched <= winner_reg;
                             score_written  <= '0';
                         end if;
                     when S_WINNER =>

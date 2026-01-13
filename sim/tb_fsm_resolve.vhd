@@ -198,9 +198,9 @@ begin
         reset <= '0';
         wait for 2*CLK_PERIOD;
 
-        ------------------------------------------------------------
-        -- TEST 0: secuencia básica de displays (2 jugadores) + sin ganador
-        ------------------------------------------------------------
+        --------------------------------------------------------------------------
+        -- TEST 0: secuencia básica de displays (2 jugadores) + ganador aproximado
+        --------------------------------------------------------------------------
         report "===== TEST 0: 2 jugadores, sin ganador =====";
         clear_all;
 
@@ -237,8 +237,9 @@ begin
 
         -- En WINNER no debería haber ganador (GA0) y no escribe puntos
         -- OJO: tu display pone "GA _ idx" donde idx es de 5 bits.
-        expect_disp(CHAR_G, CHAR_A, CHAR_BLANK, to_u5(0), "WINNER muestra GA 0");
-        expect_round_winner(0, '0', "WINNER sin ganador");
+        expect_disp(CHAR_G, CHAR_A, CHAR_BLANK, to_u5(2), "WINNER muestra GA 2 (aproximado)");
+        expect_round_winner(2, '0', "WINNER ganador aproximado");
+
 
         -- WINNER -> ROUNDS
         pulse_timeout;
@@ -303,17 +304,17 @@ begin
         report "?? Escritura de puntos OK: we_puntos=1 e in_puntos incrementado";
 
         ------------------------------------------------------------
-        -- TEST 2: varios aciertan -> gana el último (por tu for loop)
+        -- TEST 2: varios aciertan -> gana el primero (prioridad al primer acierto exacto)
         ------------------------------------------------------------
-        report "===== TEST 2: 3 jugadores, varios aciertan (gana último) =====";
+        report "===== TEST 2: 3 jugadores, varios aciertan (gana el primero) =====";
         clear_all;
         num_players_vec <= "011"; -- 3
 
         -- total=6 (2+2+2)
         piedras(1) <= 2; piedras(2) <= 2; piedras(3) <= 2;
 
-        -- p1 y p3 aciertan (apuesta=6). Según tu proceso, al iterar i=1..3,
-        -- el ganador final será i=3 (el último que cumple).
+        -- p1 y p3 aciertan (apuesta=6).
+        -- El ganador debe ser p1, ya que el cálculo se detiene en el primer acierto exacto.
         apuestas(1) <= 6; apuestas(2) <= 0; apuestas(3) <= 6;
 
         puntos(1) <= 0; puntos(2) <= 0; puntos(3) <= 2;
@@ -324,18 +325,18 @@ begin
         pulse_timeout; expect_timer_start_pulse("BETS");
         pulse_timeout; expect_timer_start_pulse("WINNER");
 
-        expect_disp(CHAR_G, CHAR_A, CHAR_BLANK, to_u5(3), "WINNER GA 3 (último acierta)");
-        expect_round_winner(3, '0', "WINNER antes timeout (multiacierto)");
+        expect_disp(CHAR_G, CHAR_A, CHAR_BLANK, to_u5(1), "WINNER GA 1 (primer acierto)");
+        expect_round_winner(1, '0', "WINNER antes timeout (multiacierto)");
 
         pulse_timeout;
         wait until rising_edge(clk);
         assert we_puntos = '1'
             report "?? we_puntos no se activó con multiacierto (debería escribir al último)"
             severity error;
-        assert in_puntos = (2 + 1) -- p3=2
+        assert in_puntos = (0 + 1) -- p1=0
             report "?? in_puntos incorrecto para multiacierto (esperado 3)"
             severity error;
-        report "?? Multiacierto OK: gana el último (p3) y suma punto";
+        report "?? Multiacierto OK: gana el primero (p1) y suma punto";
 
         ------------------------------------------------------------
         -- TEST 3: fin de partida (alguien con 3 puntos) -> END
@@ -373,8 +374,35 @@ begin
         -- Display en END: "FIn "
         expect_disp(CHAR_F, CHAR_I, CHAR_n, CHAR_BLANK, "END muestra Fin");
 
+        
+
+        ------------------------------------------------------------
+        -- TEST 4: ganador aproximado claro
+        ------------------------------------------------------------
+        report "===== TEST 4: ganador aproximado =====";
+        clear_all;
+        num_players_vec <= "011"; -- 3
+
+        -- total = 10
+        piedras(1) <= 4; piedras(2) <= 3; piedras(3) <= 3;
+
+        -- nadie acierta
+        apuestas(1) <= 6;   -- diff = 4
+        apuestas(2) <= 9;   -- diff = 1  <- ganador
+        apuestas(3) <= 13;  -- diff = 3
+
+        pulse_start;
+        expect_timer_start_pulse("EXTRACTIONS");
+        pulse_timeout; expect_timer_start_pulse("TOTAL");
+        pulse_timeout; expect_timer_start_pulse("BETS");
+        pulse_timeout; expect_timer_start_pulse("WINNER");
+        expect_disp(CHAR_G, CHAR_A, CHAR_BLANK, to_u5(2), "WINNER ganador aproximado p2");
+
         report "===== TODOS LOS TESTS COMPLETADOS CORRECTAMENTE =====";
         wait;
+
+
+
     end process;
 
 end architecture tb;
