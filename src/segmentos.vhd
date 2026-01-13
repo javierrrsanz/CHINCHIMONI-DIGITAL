@@ -99,7 +99,7 @@ begin
         end if;
     end process;
 
-    -- 4. Asignación de salida final
+    -- 4. Asignación de salida 
     -- Concatenamos '1' en el MSB para mantener el punto decimal (dp) siempre apagado
     segments <= '1' & seg_pat;
 
