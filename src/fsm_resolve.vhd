@@ -188,8 +188,13 @@ begin
                         end if;
 
                     when S_END =>         -- Bloqueo final (Fin de partida)
-                        null;
-
+                        -- FIX: Si recibimos 'start', es que la FSM Principal ha comenzado 
+                        -- una nueva partida y necesita resolver la primera ronda. Salimos del bloqueo.
+                        if start = '1' then
+                            state <= S_EXTRACTIONS;    -- Volvemos al inicio de la secuencia de resolución
+                            timer_start_internal <= '1'; -- Arrancamos el temporizador para mostrar las piedras
+                        end if;
+                        
                     when others => state <= S_IDLE;
                 end case;
             end if;
