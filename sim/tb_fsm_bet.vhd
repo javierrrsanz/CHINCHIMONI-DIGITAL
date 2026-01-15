@@ -78,13 +78,13 @@ begin
         end procedure;
 
     begin
-        report "===== INICIO TEST FSM_BET =====";
+        report "INICIO TEST FSM_BET";
         reset <= '1';
         wait for 20 ns;
         reset <= '0';
         wait for 20 ns;
 
-        -- Configuración: 2 Jugadores, Ronda 0
+        -- Configuracion: 2 Jugadores, Ronda 0
         out_num_players_vec <= "010"; 
         rondadejuego <= 0; 
         
@@ -97,44 +97,44 @@ begin
         wait for CLK_PERIOD;
         start <= '0';
 
-        ------------------------------------------------------------
+    
         -- TEST 1: MENTIRA (Apuesta < Piedras) en Ronda 0
-        ------------------------------------------------------------
+       
         report ">> Test J1: Mentir (0 apuesta con 1 piedra)";
         do_bet(0);
         
         wait until rising_edge(clk);
         assert disp_code(4 downto 0) = CHAR_E 
-            report "ERROR: No detectó la mentira" severity error;
+            report "ERROR: No detecta mentira" severity error;
         
         pulse_timeout; -- Reset error
 
-        ------------------------------------------------------------
-        -- TEST 2: APUESTA VÁLIDA
-        ------------------------------------------------------------
-        report ">> Test J1: Apuesta válida (1)";
+        
+        -- TEST 2: APUESTA VALIDA
+        
+        report ">> Test J1: Apuesta valida (1)";
         do_bet(1);
         
         wait until rising_edge(clk);
-        assert we_apuesta = '1' report "ERROR: Rechazó apuesta válida" severity error;
+        assert we_apuesta = '1' report "ERROR: Rechazo apuesta valida" severity error;
         
         -- IMPORTANTE: Actualizar registro simulado para el siguiente jugador
         apuestas_reg(1) <= 1; 
         pulse_timeout;
 
-        ------------------------------------------------------------
+        
         -- TEST 3: REPETIR APUESTA
-        ------------------------------------------------------------
+        
         report ">> Test J2: Repetir apuesta (1)";
         do_bet(1);
         
         wait until rising_edge(clk);
         assert disp_code(4 downto 0) = CHAR_E 
-            report "ERROR: Permitió repetir apuesta" severity error;
+            report "ERROR: Permitio repetir apuesta" severity error;
         
         pulse_timeout;
 
-        report "===== FIN TEST FSM_BET =====";
+        report "FIN TEST FSM_BET";
         wait;
     end process;
 
